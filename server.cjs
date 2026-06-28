@@ -3,8 +3,32 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'data', 'data.json');
 const ROOT = __dirname;
+const DATA_FILE_SRC = path.join(__dirname, 'data', 'data.json');
+const DATA_FILE_TMP = path.join('/tmp', 'data.json');
+
+// Detect writable data path once at startup
+function detectDataFile() {
+  // On Vercel the source dir is read-only; try /tmp
+  if (process.env.VERCEL) return DATA_FILE_TMP;
+  try {
+    fs.accessSync(path.join(__dirname, 'data'), fs.constants.W_OK);
+    return DATA_FILE_SRC;
+  } catch {
+    return DATA_FILE_TMP;
+  }
+}
+let DATA_FILE = detectDataFile();
+
+// On Vercel: seed /tmp/data.json from the deployment copy if not there yet
+if (DATA_FILE === DATA_FILE_TMP) {
+  try {
+    if (!fs.existsSync(DATA_FILE_TMP)) {
+      const seed = fs.readFileSync(DATA_FILE_SRC, 'utf-8');
+      fs.writeFileSync(DATA_FILE_TMP, seed, 'utf-8');
+    }
+  } catch {}
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -18,8 +42,16 @@ const MIME = {
   '.svg':  'image/svg+xml',
 };
 
-function readData() { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')); }
-function writeData(d) { fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2), 'utf-8'); }
+function readData() {
+  try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')); } catch {}
+  try { return JSON.parse(fs.readFileSync(DATA_FILE_SRC, 'utf-8')); } catch {}
+  return { products: [], orders: [], customers: [], messages: [], offers: [], notifications: [] };
+}
+function writeData(d) {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2), 'utf-8');
+  } catch { /* data survives only this warm invocation */ }
+}
 
 function parseBody(req) {
   return new Promise((resolve) => {
