@@ -85,17 +85,26 @@ let customerId = sessionStorage.getItem('volt_customer_id');
 let customerData = null;
 let customerReady = false;
 
+// Try to restore customerData from sessionStorage cache
+try {
+  const cached = sessionStorage.getItem('volt_customer_data');
+  if (cached) customerData = JSON.parse(cached);
+} catch {}
+
 async function loadCustomer() {
   if (!customerId) return false;
   try {
     const res = await fetch('/api/customer/' + customerId);
     if (res.ok) {
       customerData = await res.json();
+      sessionStorage.setItem('volt_customer_data', JSON.stringify(customerData));
       customerReady = true;
       return true;
     }
-    if (res.status === 404) clearCustomer();
   } catch {}
+  // Fallback: use cached data if API fails (different Vercel instance)
+  if (customerData) { customerReady = true; return true; }
+  clearCustomer();
   return false;
 }
 
@@ -104,22 +113,10 @@ function clearCustomer() {
   customerData = null;
   customerReady = false;
   sessionStorage.removeItem('volt_customer_id');
+  sessionStorage.removeItem('volt_customer_data');
   const ro = document.getElementById('reg-overlay');
   if (ro) ro.style.display = 'flex';
 }
-
-// Periodic check: if customer was deleted by admin, force logout
-setInterval(async () => {
-  if (!customerId) return;
-  try {
-    const res = await fetch('/api/customer/' + customerId);
-    if (res.status === 404) {
-      clearCustomer();
-      showToast('Session expired. Please register again.', 'notify');
-      location.reload();
-    }
-  } catch {}
-}, 15000);
 
 // Init: show registration or load existing customer
 ;(async () => {
@@ -127,8 +124,7 @@ setInterval(async () => {
     const ro = document.getElementById('reg-overlay');
     if (ro) ro.style.display = 'flex';
   } else {
-    const valid = await loadCustomer();
-    if (!valid && customerId) clearCustomer();
+    await loadCustomer();
   }
 })();
 
@@ -167,6 +163,7 @@ document.getElementById('reg-form')?.addEventListener('submit', async (e) => {
     customerData = data.customer;
     customerId = data.customer.id;
     sessionStorage.setItem('volt_customer_id', customerId);
+    sessionStorage.setItem('volt_customer_data', JSON.stringify(customerData));
     document.getElementById('reg-overlay').style.display = 'none';
   } catch {
     showToast('Connection error', 'error');
@@ -215,6 +212,7 @@ profileForm?.addEventListener('submit', async (e) => {
     const data = await res.json();
     if (!data.success) { showToast('Save failed', 'error'); return; }
     customerData = data.customer;
+    sessionStorage.setItem('volt_customer_data', JSON.stringify(customerData));
     profileOverlay.classList.remove('open');
     profileModal.classList.remove('open');
   } catch {
