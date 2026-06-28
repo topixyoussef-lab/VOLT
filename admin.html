@@ -47,7 +47,7 @@
     <section class="tab-content" id="tab-orders">
       <div class="container">
         <div class="stats-grid">
-          <div class="stat-card">
+          <div class="stat-card clickable" id="users-stat-card">
             <span class="stat-label">Registered Users</span>
             <span class="stat-value" id="stat-users">0</span>
           </div>
@@ -215,6 +215,18 @@
       </div>
       <button type="submit" class="btn btn-primary" id="save-product">Save Product</button>
     </form>
+  </div>
+
+  <!-- CUSTOMERS MODAL -->
+  <div class="modal-overlay" id="customers-modal-overlay"></div>
+  <div class="modal" id="customers-modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h2>Registered Users</h2>
+      <button class="modal-close" id="customers-modal-close">&times;</button>
+    </div>
+    <div class="customers-list" id="customers-list">
+      <p class="empty-msg">Loading...</p>
+    </div>
   </div>
 
   <script src="js/admin.js"></script>

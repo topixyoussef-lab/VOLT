@@ -146,6 +146,15 @@ async function handleRequest(req, res) {
   if (p === '/api/admin/customers' && req.method === 'GET')
     return sendJSON(res, 200, readData().customers);
 
+  const custDel = p.match(/^\/api\/admin\/customers\/(\d+)$/);
+  if (custDel && req.method === 'DELETE') {
+    const data = readData();
+    data.customers = data.customers.filter(x => x.id !== parseInt(custDel[1]));
+    data.messages = (data.messages || []).filter(m => m.customerId !== parseInt(custDel[1]));
+    writeData(data);
+    return sendJSON(res, 200, { success: true });
+  }
+
   if (p === '/api/admin/notifications' && req.method === 'GET')
     return sendJSON(res, 200, (readData().notifications || []).reverse());
 

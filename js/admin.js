@@ -359,6 +359,43 @@ async function sendMessage() {
 document.getElementById('admin-chat-send')?.addEventListener('click', sendMessage);
 document.getElementById('admin-chat-input')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
+// ====== CUSTOMERS ======
+async function showCustomers() {
+  const customers = await apiGet('/customers');
+  const list = document.getElementById('customers-list');
+  if (customers.length === 0) { list.innerHTML = '<p class="empty-msg">No registered users.</p>'; return; }
+  list.innerHTML = customers.map(c => `
+    <div class="customer-card-admin">
+      <div class="customer-info-admin">
+        <strong>${c.name}</strong>
+        <span>${c.phone} &middot; ${c.city}</span>
+        <small>${c.address}${c.location ? ' &middot; 📍' : ''} &middot; ${c.createdAt || ''}</small>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">Delete</button>
+    </div>
+  `).join('');
+  document.getElementById('customers-modal-overlay').classList.add('open');
+  document.getElementById('customers-modal').classList.add('open');
+}
+
+async function deleteCustomer(id) {
+  if (!confirm('Delete this customer and all their messages?')) return;
+  await apiDelete('/customers/' + id);
+  showCustomers();
+  loadUserCount();
+  loadCustomerList();
+}
+
+document.getElementById('users-stat-card')?.addEventListener('click', showCustomers);
+document.getElementById('customers-modal-close')?.addEventListener('click', () => {
+  document.getElementById('customers-modal-overlay').classList.remove('open');
+  document.getElementById('customers-modal').classList.remove('open');
+});
+document.getElementById('customers-modal-overlay')?.addEventListener('click', () => {
+  document.getElementById('customers-modal-overlay').classList.remove('open');
+  document.getElementById('customers-modal').classList.remove('open');
+});
+
 if (sessionStorage.getItem('volt_admin') === 'true') {
   initApp();
 }
