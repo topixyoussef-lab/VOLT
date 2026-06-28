@@ -43,7 +43,16 @@ async function apiPut(path, body) {
 }
 async function apiDelete(path) { const r = await fetch(API + path, { method: 'DELETE' }); return r.json(); }
 
+async function loadUserCount() {
+  const statUsers = document.getElementById('stat-users');
+  try {
+    const customers = await apiGet('/customers');
+    statUsers.textContent = customers.length;
+  } catch { statUsers.textContent = '—'; }
+}
+
 function initApp() {
+  loadUserCount();
   renderProducts();
   renderOrders();
   renderOffers();
