@@ -257,7 +257,12 @@ async function handleRequest(req, res) {
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
     const data = readData();
     const idx = data.customers.findIndex(x => x.id === parseInt(getCust[1]));
-    if (idx === -1) return sendJSON(res, 404, { error: 'Not found' });
+    if (idx === -1) {
+      // Vercel multi-instance: customer not found on this instance, upsert
+      data.customers.push({ id: parseInt(getCust[1]), ...body, location: null, createdAt: '' });
+      writeData(data);
+      return sendJSON(res, 200, { success: true, customer: data.customers[data.customers.length - 1] });
+    }
     data.customers[idx] = { ...data.customers[idx], ...body, id: data.customers[idx].id };
     writeData(data);
     return sendJSON(res, 200, { success: true, customer: data.customers[idx] });
