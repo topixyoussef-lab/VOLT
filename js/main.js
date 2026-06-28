@@ -83,25 +83,61 @@ document.getElementById('theme-toggle')?.addEventListener('click', () => {
 // ====== CUSTOMER DATA ======
 let customerId = sessionStorage.getItem('volt_customer_id');
 let customerData = null;
+let customerReady = false;
 
 async function loadCustomer() {
-  if (!customerId) return;
+  if (!customerId) return false;
   try {
     const res = await fetch('/api/customer/' + customerId);
     if (res.ok) {
       customerData = await res.json();
+      customerReady = true;
+      return true;
+    }
+    if (res.status === 404) clearCustomer();
+  } catch {}
+  return false;
+}
+
+function clearCustomer() {
+  customerId = null;
+  customerData = null;
+  customerReady = false;
+  sessionStorage.removeItem('volt_customer_id');
+  const ro = document.getElementById('reg-overlay');
+  if (ro) ro.style.display = 'flex';
+}
+
+// Periodic check: if customer was deleted by admin, force logout
+setInterval(async () => {
+  if (!customerId) return;
+  try {
+    const res = await fetch('/api/customer/' + customerId);
+    if (res.status === 404) {
+      clearCustomer();
+      showToast('Session expired. Please register again.', 'notify');
+      location.reload();
     }
   } catch {}
-}
+}, 15000);
 
-// Show registration if not registered
-if (!customerId) {
-  document.getElementById('reg-overlay').style.display = 'flex';
-} else {
-  loadCustomer();
-}
+// Init: show registration or load existing customer
+;(async () => {
+  if (!customerId) {
+    const ro = document.getElementById('reg-overlay');
+    if (ro) ro.style.display = 'flex';
+  } else {
+    const valid = await loadCustomer();
+    if (!valid && customerId) clearCustomer();
+  }
+})();
 
 // ====== REGISTRATION ======
+document.getElementById('reg-close')?.addEventListener('click', () => {
+  document.getElementById('reg-overlay').style.display = 'none';
+  showToast('Register before placing an order', 'info');
+});
+
 document.getElementById('reg-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = document.getElementById('reg-name').value.trim();
@@ -633,6 +669,11 @@ function getLocation(callback) {
 
 orderForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (!customerId) {
+    showToast('Please register first to place an order', 'error');
+    document.getElementById('reg-overlay').style.display = 'flex';
+    return;
+  }
   const name = document.getElementById('cust-name').value.trim();
   const city = document.getElementById('cust-city').value.trim();
   const address = document.getElementById('cust-address').value.trim();
