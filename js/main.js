@@ -118,21 +118,20 @@ function clearCustomer() {
   if (ro) ro.style.display = 'flex';
 }
 
-// Init: show registration or load existing customer
+// Init: try to load existing customer, never auto-show registration
 ;(async () => {
-  if (!customerId) {
-    const ro = document.getElementById('reg-overlay');
-    if (ro) ro.style.display = 'flex';
-  } else {
-    await loadCustomer();
-  }
+  if (customerId) await loadCustomer();
 })();
 
 // ====== REGISTRATION ======
 document.getElementById('reg-close')?.addEventListener('click', () => {
   document.getElementById('reg-overlay').style.display = 'none';
-  showToast('Register before placing an order', 'info');
 });
+document.getElementById('register-btn')?.addEventListener('click', () => openRegister());
+
+function openRegister() {
+  document.getElementById('reg-overlay').style.display = 'flex';
+}
 
 document.getElementById('reg-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -643,7 +642,7 @@ cartOverlay?.addEventListener('click', closeCart);
 // Checkout
 document.getElementById('checkout-btn')?.addEventListener('click', () => {
   if (cart.length === 0) return;
-  if (!customerData) { showToast('Please create a profile first.', 'info'); return; }
+  if (!customerData) { showToast('Please create a profile first.', 'info'); openRegister(); return; }
   document.getElementById('cust-name').value = customerData.name || '';
   document.getElementById('cust-city').value = customerData.city || '';
   document.getElementById('cust-address').value = customerData.address || '';
@@ -669,7 +668,7 @@ orderForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!customerId) {
     showToast('Please register first to place an order', 'error');
-    document.getElementById('reg-overlay').style.display = 'flex';
+    openRegister();
     return;
   }
   const name = document.getElementById('cust-name').value.trim();
