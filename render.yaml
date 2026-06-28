@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: volt-store
+    runtime: node
+    repo: https://github.com/topixyoussef-lab/VOLT
+    branch: main
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 18
