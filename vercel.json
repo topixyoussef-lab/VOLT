@@ -1,0 +1,10 @@
+{
+  "builds": [
+    { "src": "server.cjs", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/login", "dest": "/login.html" },
+    { "src": "/api/(.*)", "dest": "server.cjs" }
+  ]
+}

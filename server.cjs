@@ -316,8 +316,17 @@ const server = http.createServer(async (req, res) => {
   serveStatic(req, res);
 });
 
-server.listen(PORT, () => {
-  console.log(`Store:  http://localhost:${PORT}`);
-  console.log(`Admin: http://localhost:${PORT}/admin`);
-  console.log(`Login: http://localhost:${PORT}/login`);
-});
+// If running standalone (not on Vercel)
+if (require.main === module || !process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log(`Store:  http://localhost:${PORT}`);
+    console.log(`Admin: http://localhost:${PORT}/admin`);
+    console.log(`Login: http://localhost:${PORT}/login`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  server.emit('request', req, res);
+};
