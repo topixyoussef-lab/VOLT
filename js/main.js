@@ -91,6 +91,19 @@ try {
   if (cached) customerData = JSON.parse(cached);
 } catch {}
 
+function updateHeaderButtons() {
+  const rb = document.getElementById('register-btn');
+  const pb = document.getElementById('profile-btn');
+  if (!rb || !pb) return;
+  if (customerData) {
+    rb.classList.add('hidden');
+    pb.classList.remove('hidden');
+  } else {
+    rb.classList.remove('hidden');
+    pb.classList.add('hidden');
+  }
+}
+
 async function loadCustomer() {
   if (!customerId) return false;
   try {
@@ -99,11 +112,12 @@ async function loadCustomer() {
       customerData = await res.json();
       sessionStorage.setItem('volt_customer_data', JSON.stringify(customerData));
       customerReady = true;
+      updateHeaderButtons();
       return true;
     }
   } catch {}
   // Fallback: use cached data if API fails (different Vercel instance)
-  if (customerData) { customerReady = true; return true; }
+  if (customerData) { customerReady = true; updateHeaderButtons(); return true; }
   clearCustomer();
   return false;
 }
@@ -114,12 +128,14 @@ function clearCustomer() {
   customerReady = false;
   sessionStorage.removeItem('volt_customer_id');
   sessionStorage.removeItem('volt_customer_data');
+  updateHeaderButtons();
   const ro = document.getElementById('reg-overlay');
   if (ro) ro.style.display = 'flex';
 }
 
 // Init: try to load existing customer, never auto-show registration
 ;(async () => {
+  updateHeaderButtons();
   if (customerId) await loadCustomer();
 })();
 
@@ -163,6 +179,7 @@ document.getElementById('reg-form')?.addEventListener('submit', async (e) => {
     customerId = data.customer.id;
     sessionStorage.setItem('volt_customer_id', customerId);
     sessionStorage.setItem('volt_customer_data', JSON.stringify(customerData));
+    updateHeaderButtons();
     document.getElementById('reg-overlay').style.display = 'none';
   } catch {
     showToast('Connection error', 'error');
@@ -212,6 +229,7 @@ profileForm?.addEventListener('submit', async (e) => {
     if (!data.success) { showToast('Save failed', 'error'); return; }
     customerData = data.customer;
     sessionStorage.setItem('volt_customer_data', JSON.stringify(customerData));
+    updateHeaderButtons();
     profileOverlay.classList.remove('open');
     profileModal.classList.remove('open');
   } catch {

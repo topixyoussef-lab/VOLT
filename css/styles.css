@@ -124,13 +124,14 @@ body {
   background: #e63946;
 }
 
-/* PROFILE BUTTON IN HEADER */
-#profile-btn {
+/* PROFILE / REGISTER BUTTONS IN HEADER */
+#register-btn, #profile-btn {
   cursor: pointer;
   font-size: 20px;
   transition: color 0.2s;
 }
-#profile-btn:hover { color: #e63946; }
+#register-btn:hover, #profile-btn:hover { color: #e63946; }
+#register-btn.hidden, #profile-btn.hidden { display: none; }
 
 .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
