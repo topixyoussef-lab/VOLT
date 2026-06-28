@@ -79,6 +79,14 @@ body {
   margin-bottom: 28px;
 }
 
+.name-box { position: relative; }
+.name-close {
+  position: absolute; top: 8px; right: 12px;
+  background: none; border: none; font-size: 20px;
+  cursor: pointer; color: #999; padding: 4px 8px; line-height: 1;
+}
+.name-close:hover { color: #e63946; }
+
 .name-box form {
   display: flex;
   flex-direction: column;

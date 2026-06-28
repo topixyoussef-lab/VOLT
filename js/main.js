@@ -181,7 +181,7 @@ const profileClose = document.getElementById('profile-close');
 const profileForm = document.getElementById('profile-form');
 
 profileBtn?.addEventListener('click', () => {
-  if (!customerData) return;
+  if (!customerData) { showToast('Register first to access profile', 'info'); return; }
   document.getElementById('prof-name').value = customerData.name || '';
   document.getElementById('prof-phone').value = customerData.phone || '';
   document.getElementById('prof-city').value = customerData.city || '';
