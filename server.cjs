@@ -54,25 +54,19 @@ function serveStatic(req, res) {
 }
 
 // ============================================================
-// SINGLE SERVER (store + admin on one port)
+// HANDLER (shared between http server and Vercel)
 // ============================================================
-const server = http.createServer(async (req, res) => {
+async function handleRequest(req, res) {
   const u = new URL(req.url, `http://${req.headers.host}`);
   const p = u.pathname;
 
   // ---- ADMIN ROUTES ----
-
-  // Serve login.html
-  if (p === '/login' || p === '/login.html') {
+  if (p === '/login' || p === '/login.html')
     return serveFile(res, path.join(ROOT, 'login.html'));
-  }
 
-  // Serve admin.html
-  if (p === '/admin' || p === '/admin.html') {
+  if (p === '/admin' || p === '/admin.html')
     return serveFile(res, path.join(ROOT, 'admin.html'));
-  }
 
-  // Admin API: Products
   if (p === '/api/admin/products' && req.method === 'GET')
     return sendJSON(res, 200, readData().products);
 
@@ -107,7 +101,6 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true });
   }
 
-  // Admin API: Orders
   if (p === '/api/admin/orders' && req.method === 'GET')
     return sendJSON(res, 200, readData().orders);
 
@@ -118,11 +111,9 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true });
   }
 
-  // Admin API: Customers
   if (p === '/api/admin/customers' && req.method === 'GET')
     return sendJSON(res, 200, readData().customers);
 
-  // Admin API: Notifications
   if (p === '/api/admin/notifications' && req.method === 'GET')
     return sendJSON(res, 200, (readData().notifications || []).reverse());
 
@@ -133,7 +124,6 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true });
   }
 
-  // Admin API: Offers CRUD
   if (p === '/api/admin/offers' && req.method === 'GET')
     return sendJSON(res, 200, readData().offers || []);
 
@@ -167,7 +157,6 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true, offer: data.offers[idx] });
   }
 
-  // Admin API: Chat
   if (p === '/api/admin/chat' && req.method === 'GET') {
     const data = readData();
     const customerId = parseInt(u.searchParams.get('customerId'));
@@ -194,12 +183,9 @@ const server = http.createServer(async (req, res) => {
 
   // ---- STORE ROUTES ----
 
-  // Products
-  if (p === '/api/products' && req.method === 'GET') {
+  if (p === '/api/products' && req.method === 'GET')
     return sendJSON(res, 200, readData().products);
-  }
 
-  // Register
   if (p === '/api/register' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body || !body.name) return sendJSON(res, 400, { error: 'Name required' });
@@ -218,7 +204,6 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true, customer });
   }
 
-  // Get customer
   const getCust = p.match(/^\/api\/customer\/(\d+)$/);
   if (getCust && req.method === 'GET') {
     const data = readData();
@@ -226,7 +211,6 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, c ? 200 : 404, c || { error: 'Not found' });
   }
 
-  // Update customer
   if (getCust && req.method === 'PUT') {
     const body = await parseBody(req);
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
@@ -238,7 +222,6 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true, customer: data.customers[idx] });
   }
 
-  // Cancel order
   if (p === '/api/orders/cancel' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body || !body.id) return sendJSON(res, 400, { error: 'Order ID required' });
@@ -261,13 +244,9 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true });
   }
 
-  // Offers (store reads)
-  if (p === '/api/offers' && req.method === 'GET') {
-    const data = readData();
-    return sendJSON(res, 200, data.offers || []);
-  }
+  if (p === '/api/offers' && req.method === 'GET')
+    return sendJSON(res, 200, readData().offers || []);
 
-  // Orders (store places)
   if (p === '/api/orders' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
@@ -279,7 +258,6 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true, id: body.id });
   }
 
-  // Chat (customer)
   if (p === '/api/chat' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body || !body.customerId) return sendJSON(res, 400, { error: 'customerId required' });
@@ -307,16 +285,16 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, msgs);
   }
 
-  // Serve store (index.html) for root
-  if (p === '/' || p === '/index.html') {
+  // Serve index.html for root
+  if (p === '/' || p === '/index.html')
     return serveFile(res, path.join(ROOT, 'index.html'));
-  }
 
   // Serve static files (css, js, images)
   serveStatic(req, res);
-});
+}
 
-// If running standalone (not on Vercel)
+// Standalone server (skip listen when imported by Vercel)
+const server = http.createServer(handleRequest);
 if (require.main === module || !process.env.VERCEL) {
   server.listen(PORT, () => {
     console.log(`Store:  http://localhost:${PORT}`);
@@ -325,8 +303,5 @@ if (require.main === module || !process.env.VERCEL) {
   });
 }
 
-// Export for Vercel serverless
-module.exports = (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  server.emit('request', req, res);
-};
+// Export for Vercel
+module.exports = handleRequest;
