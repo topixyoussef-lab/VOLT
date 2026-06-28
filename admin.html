@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOLT — Admin Dashboard</title>
+  <link rel="icon" href="images/download.png">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="admin-header" id="admin-header">
+    <div class="container">
+      <div class="admin-header-inner">
+        <a href="/" class="admin-logo">VOLT <span>Admin</span></a>
+        <nav class="admin-nav">
+          <button class="tab-btn active" data-tab="products">Products</button>
+          <button class="tab-btn" data-tab="orders">Orders</button>
+          <button class="tab-btn" data-tab="offers">Offers</button>
+          <button class="tab-btn" data-tab="notifications" id="notif-tab-btn">Notifications <span class="notif-badge" id="notif-badge"></span></button>
+          <button class="tab-btn" data-tab="chat">Chat</button>
+          <button class="tab-btn theme-toggle" id="admin-theme-toggle">&#9790;</button>
+        </nav>
+        <button class="btn btn-outline btn-sm" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main" id="admin-main">
+
+    <!-- === PRODUCTS TAB === -->
+    <section class="tab-content active" id="tab-products">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Products</h2>
+          <button class="btn btn-primary" id="add-product-btn">+ Add Product</button>
+        </div>
+        <div class="product-list" id="product-list">
+          <p class="empty-msg">No products yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- === ORDERS TAB === -->
+    <section class="tab-content" id="tab-orders">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Total Orders</span>
+            <span class="stat-value" id="stat-orders">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total Revenue</span>
+            <span class="stat-value" id="stat-revenue">0 EGP</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Items Sold</span>
+            <span class="stat-value" id="stat-items">0</span>
+          </div>
+        </div>
+        <div class="section-header">
+          <h2 class="section-title">Orders</h2>
+          <button class="btn btn-outline" id="clear-btn">Clear All</button>
+        </div>
+        <div class="orders-list" id="orders-list">
+          <p class="empty-msg">No orders yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- === OFFERS TAB === -->
+    <section class="tab-content" id="tab-offers">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Offers</h2>
+          <button class="btn btn-primary" id="add-offer-btn">+ Add Offer</button>
+        </div>
+        <div class="offers-list" id="offers-list">
+          <p class="empty-msg">No offers yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- === NOTIFICATIONS TAB === -->
+    <section class="tab-content" id="tab-notifications">
+      <div class="container">
+        <h2 class="section-title">Notifications</h2>
+        <div class="notif-list" id="notif-list">
+          <p class="empty-msg">No notifications.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- === CHAT TAB === -->
+    <section class="tab-content" id="tab-chat">
+      <div class="container">
+        <h2 class="section-title">Customer Chat</h2>
+        <div class="admin-chat-layout">
+          <div class="chat-customer-list" id="chat-customer-list">
+            <p class="empty-msg">No customers yet.</p>
+          </div>
+          <div class="chat-conversation">
+            <div class="chat-conversation-header" id="chat-conv-header">Select a customer to chat</div>
+            <div class="chat-messages" id="admin-chat-messages">
+              <p class="empty-msg">No messages yet.</p>
+            </div>
+            <div class="chat-input-row">
+              <input type="text" id="admin-chat-input" placeholder="Type a reply..." autocomplete="off">
+              <button class="btn btn-primary" id="admin-chat-send">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- OFFER FORM MODAL -->
+  <div class="modal-overlay" id="offer-modal-overlay"></div>
+  <div class="modal" id="offer-modal">
+    <div class="modal-header">
+      <h2 id="offer-modal-title">Add Offer</h2>
+      <button class="modal-close" id="offer-modal-close">&times;</button>
+    </div>
+    <form id="offer-form">
+      <input type="hidden" id="offer-edit-id">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="offer-title" required placeholder="e.g. Buy 4 Get 1 Free">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="offer-desc" required placeholder="e.g. Buy 4 T-Shirts, Get the 5th FREE!">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Product Name (match)</label>
+          <input type="text" id="offer-product" placeholder="e.g. T-Shirts">
+        </div>
+        <div class="form-group">
+          <label>Buy Qty</label>
+          <input type="number" id="offer-buy" value="4" min="1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Free Qty</label>
+          <input type="number" id="offer-free" value="1" min="1">
+        </div>
+        <div class="form-group">
+          <label>Active</label>
+          <select id="offer-active">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" id="save-offer">Save Offer</button>
+    </form>
+  </div>
+
+  <!-- PRODUCT FORM MODAL -->
+  <div class="modal-overlay" id="product-modal-overlay"></div>
+  <div class="modal" id="product-modal">
+    <div class="modal-header">
+      <h2 id="product-modal-title">Add Product</h2>
+      <button class="modal-close" id="product-modal-close">&times;</button>
+    </div>
+    <form id="product-form">
+      <input type="hidden" id="edit-id">
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" id="p-name" required placeholder="e.g. Wide Leg Pants">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sale Price (EGP)</label>
+          <input type="number" id="p-price" required placeholder="350">
+        </div>
+        <div class="form-group">
+          <label>Original Price (EGP)</label>
+          <input type="number" id="p-original" placeholder="400">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Material</label>
+        <input type="text" id="p-material" required placeholder="Premium Soft Summer Milton">
+      </div>
+      <div class="form-group">
+        <label>Colors</label>
+        <input type="text" id="p-colors" required placeholder="classic Solid">
+      </div>
+      <div class="form-group">
+        <label>Sizes (comma separated)</label>
+        <input type="text" id="p-sizes" required placeholder="M, L, XL, 2XL">
+      </div>
+      <div class="form-group">
+        <label>Image URLs (one per line)</label>
+        <textarea id="p-images" rows="3" required placeholder="images/img1.jpeg"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Availability</label>
+          <select id="p-available">
+            <option value="true">Available</option>
+            <option value="false">Unavailable</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" id="save-product">Save Product</button>
+    </form>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Wide Leg Pants",
+      "price": 350,
+      "originalPrice": 400,
+      "material": "Premium Soft Summer Milton",
+      "colors": "classic Solid",
+      "sizes": [
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "images": [
+        "images/img1.jpeg",
+        "images/img2.jpeg",
+        "images/img3.jpeg"
+      ],
+      "available": true
+    },
+    {
+      "id": 2,
+      "name": "T-Shirts",
+      "price": 250,
+      "originalPrice": 300,
+      "material": "Marseilia High-Quality Lycra",
+      "colors": "Black",
+      "sizes": [
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "images": [
+        "images/img4.jpeg",
+        "images/img5.jpeg",
+        "images/img6.jpeg"
+      ],
+      "available": true
+    },
+    {
+      "id": 3,
+      "name": "T-Shirts",
+      "price": 250,
+      "originalPrice": 300,
+      "material": "Marseilia High-Quality Lycra",
+      "colors": "Sage Green / Mint Green",
+      "sizes": [
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "images": [
+        "images/img7.jpeg",
+        "images/img8.jpeg",
+        "images/img9.jpeg"
+      ],
+      "available": true
+    },
+    {
+      "id": 4,
+      "name": "T-Shirts",
+      "price": 250,
+      "originalPrice": 300,
+      "material": "Marseilia High-Quality Lycra",
+      "colors": "Beige",
+      "sizes": [
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "images": [
+        "images/img10.jpeg",
+        "images/img11.jpeg",
+        "images/img12.jpeg"
+      ],
+      "available": true
+    },
+    {
+      "id": 5,
+      "name": "T-Shirts",
+      "price": 250,
+      "originalPrice": 300,
+      "material": "Marseilia High-Quality Lycra",
+      "colors": "White",
+      "sizes": [
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "images": [
+        "images/img13.jpeg",
+        "images/img14.jpeg",
+        "images/img15.jpeg"
+      ],
+      "available": true
+    },
+    {
+      "id": 6,
+      "name": "Wide Leg Pants",
+      "price": 350,
+      "originalPrice": 400,
+      "material": "Premium Soft Summer Milton",
+      "colors": "Black",
+      "sizes": [
+        "M",
+        "L",
+        "XL",
+        "2XL"
+      ],
+      "images": [
+        "images/img16.jpeg",
+        "images/img17.jpeg",
+        "images/img18.jpeg"
+      ],
+      "available": true
+    },
+    {
+      "id": 7,
+      "name": "Men's Summer Shorts Tracksuit",
+      "price": 350,
+      "originalPrice": 400,
+      "material": "Summer Molton, Brushed Back",
+      "colors": "Black",
+      "sizes": [
+        "L",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "images": [
+        "images/img19.jpeg",
+        "images/img20.jpeg",
+        "images/img21.jpeg"
+      ],
+      "available": true
+    },
+    {
+      "id": 8,
+      "name": "Men's Summer Shorts Tracksuit",
+      "price": 350,
+      "originalPrice": 400,
+      "material": "Summer Molton, Brushed Back",
+      "colors": "Beige",
+      "sizes": [
+        "L",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "images": [
+        "images/img22.jpeg",
+        "images/img23.jpeg",
+        "images/img24.jpeg"
+      ],
+      "available": true
+    },
+    {
+      "id": 9,
+      "name": "Men's Summer Shorts Tracksuit",
+      "price": 350,
+      "originalPrice": 400,
+      "material": "Summer Molton, Brushed Back",
+      "colors": "Olive",
+      "sizes": [
+        "L",
+        "XL",
+        "2XL",
+        "3XL"
+      ],
+      "images": [
+        "images/img25.jpeg",
+        "images/img26.jpeg",
+        "images/img27.jpeg"
+      ],
+      "available": true
+    }
+  ],
+  "orders": [],
+  "customers": [
+    {
+      "id": 1782659752570,
+      "name": "TX",
+      "phone": "0120",
+      "city": "fik",
+      "address": "kdekut",
+      "location": {
+        "lat": 29.9643,
+        "lng": 31.3145
+      },
+      "createdAt": "28/06/2026, 18:15:52"
+    },
+    {
+      "id": 1782670621951,
+      "name": "TX",
+      "phone": "0120",
+      "city": "fik",
+      "address": "kdekut",
+      "location": {
+        "lat": 29.9643,
+        "lng": 31.3145
+      },
+      "createdAt": "28/06/2026, 21:17:01"
+    }
+  ],
+  "offers": [
+    {
+      "title": "Buy 4 Get 1 Free",
+      "desc": "Buy 4 T-Shirts, Get the 5th FREE!",
+      "product": "T-Shirts",
+      "buy": 4,
+      "free": 1,
+      "active": false,
+      "id": 1782666020878
+    }
+  ],
+  "messages": [
+    {
+      "id": 1782659795855,
+      "customerId": 1782659752570,
+      "from": "customer",
+      "name": "TX",
+      "text": "mhfsydj",
+      "time": "28/06/2026, 18:16:35"
+    },
+    {
+      "id": 1782659802599,
+      "customerId": 1782659752570,
+      "from": "admin",
+      "text": "xjfgm",
+      "time": "28/06/2026, 18:16:42"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1782669632806,
+      "type": "cancel",
+      "orderId": 1782669606133,
+      "customerName": "TX",
+      "text": "Order #1 was canceled by TX",
+      "time": "28/06/2026, 21:00:32",
+      "read": true
+    },
+    {
+      "id": 1782670657554,
+      "type": "cancel",
+      "orderId": 1782670648229,
+      "customerName": "TX",
+      "text": "Order #1 was canceled by TX",
+      "time": "28/06/2026, 21:17:37",
+      "read": true
+    }
+  ]
+}

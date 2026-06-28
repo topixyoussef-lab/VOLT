@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOLT — Premium Clothing</title>
+  <link rel="icon" href="images/download.png">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container"></div>
+
+  <!-- REGISTRATION OVERLAY -->
+  <div class="name-overlay" id="reg-overlay">
+    <div class="name-box">
+      <h1>Welcome to <span>VOLT</span></h1>
+      <p>Create your profile to start shopping</p>
+      <form id="reg-form">
+        <input type="text" id="reg-name" placeholder="Full Name" required>
+        <input type="tel" id="reg-phone" placeholder="Phone Number" required>
+        <input type="text" id="reg-city" placeholder="City" required>
+        <input type="text" id="reg-address" placeholder="Street / Address" required>
+        <button type="submit">Create Profile &amp; Start</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div class="modal-overlay" id="profile-overlay"></div>
+  <div class="modal" id="profile-modal">
+    <div class="modal-header">
+      <h2>My Profile</h2>
+      <button class="modal-close" id="profile-close">&times;</button>
+    </div>
+    <form id="profile-form">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="prof-name" required>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="prof-phone" required>
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" id="prof-city" required>
+      </div>
+      <div class="form-group">
+        <label>Street / Address</label>
+        <input type="text" id="prof-address" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="#" class="logo">VOLT</a>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search products..." autocomplete="off">
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn theme-toggle" id="theme-toggle" title="Toggle theme">&#9790;</button>
+        <button class="icon-btn" id="profile-btn" title="My Profile">&#128100;</button>
+        <button class="icon-btn cart-btn" aria-label="Cart">
+          &#128722;
+          <span class="cart-count" id="cart-count">0</span>
+        </button>
+      </div>
+      <button class="hamburger" aria-label="Menu">&#9776;</button>
+    </div>
+  </header>
+
+  <!-- PROMO BANNER -->
+  <div class="promo-banner" style="display:none">
+    <div class="container"></div>
+  </div>
+
+  <!-- PRODUCT GRID -->
+  <section class="product-grid-section" id="product-grid-section">
+    <div class="container">
+      <h2 class="section-title">Products</h2>
+      <div class="skeleton-grid" id="skeleton-grid">
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+      </div>
+      <div class="product-grid" id="product-grid"></div>
+    </div>
+  </section>
+
+  <!-- PRODUCT DETAIL -->
+  <section class="product-page" id="product-page" style="display:none;">
+    <div class="container">
+      <button class="btn-back" id="btn-back">&larr; Back to Products</button>
+      <div class="product-detail">
+        <div class="product-gallery">
+          <div class="gallery-main" id="gallery-main"></div>
+          <div class="gallery-thumbs" id="gallery-thumbs"></div>
+        </div>
+        <div class="product-info-detail">
+          <h1 id="detail-name"></h1>
+          <div class="price-row">
+            <span class="price-sale" id="detail-price"></span>
+            <span class="price-original" id="detail-original"></span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Material:</span>
+            <span class="value" id="detail-material"></span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Colors:</span>
+            <span class="value" id="detail-colors"></span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Sizes:</span>
+            <span class="value" id="detail-sizes"></span>
+          </div>
+          <button class="btn btn-primary add-cart" id="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+      <div class="similar-section">
+        <h3 class="similar-title">Similar Products</h3>
+        <div class="similar-grid" id="similar-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CART SIDEBAR -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <div class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+      <h2>Your Cart</h2>
+      <button class="cart-close" id="cart-close">&times;</button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      <p class="cart-empty">Your cart is empty.</p>
+    </div>
+    <div class="cart-footer" id="cart-footer" style="display:none;">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cart-total-price">0 EGP</span>
+      </div>
+      <button class="btn btn-primary" id="checkout-btn">Confirm Order</button>
+    </div>
+  </div>
+
+  <!-- ORDER MODAL -->
+  <div class="modal-overlay" id="modal-overlay"></div>
+  <div class="modal" id="order-modal">
+    <div class="modal-header">
+      <h2>Order Details</h2>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+    <form id="order-form">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="cust-name" required>
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" id="cust-city" required>
+      </div>
+      <div class="form-group">
+        <label>Street / Address</label>
+        <input type="text" id="cust-address" required>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="cust-phone" required>
+      </div>
+      <button type="submit" class="btn btn-primary" id="submit-order">Send Order</button>
+    </form>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="logo">VOLT</a>
+        <p>Premium urban fashion for the bold and the fearless.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Shop</h4>
+        <a href="#">T-Shirts</a>
+        <a href="#">Jackets</a>
+        <a href="#">Pants</a>
+        <a href="#">Shoes</a>
+      </div>
+      <div class="footer-links">
+        <h4>Support</h4>
+        <a href="#">Contact Us</a>
+        <a href="#">Returns</a>
+        <a href="#">Size Guide</a>
+        <a href="#">FAQ</a>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="http://localhost:3001">Admin Panel</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; 2026 VOLT. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- CHAT WIDGET -->
+  <button class="chat-toggle" id="chat-toggle">&#128172;</button>
+  <div class="chat-widget" id="chat-widget">
+    <div class="chat-widget-header">
+      <span>VOLT Support</span>
+      <button class="chat-close-btn" id="chat-close-btn">&times;</button>
+    </div>
+    <div class="chat-widget-messages" id="chat-widget-messages">
+      <div class="chat-msg admin">Welcome! How can we help you?</div>
+    </div>
+    <div class="chat-widget-input">
+      <input type="text" id="chat-widget-input" placeholder="Type a message..." autocomplete="off">
+      <button id="chat-widget-send">Send</button>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

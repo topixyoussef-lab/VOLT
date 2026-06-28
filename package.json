@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
