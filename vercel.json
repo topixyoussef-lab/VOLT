@@ -1,10 +1,15 @@
 {
   "builds": [
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "css/**", "use": "@vercel/static" },
+    { "src": "js/**", "use": "@vercel/static" },
+    { "src": "images/**", "use": "@vercel/static" },
     { "src": "server.cjs", "use": "@vercel/node" }
   ],
   "routes": [
     { "src": "/admin", "dest": "/admin.html" },
     { "src": "/login", "dest": "/login.html" },
-    { "src": "/api/(.*)", "dest": "server.cjs" }
+    { "src": "/api/(.*)", "dest": "server.cjs" },
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
