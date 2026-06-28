@@ -217,9 +217,9 @@
     </form>
   </div>
 
-  <!-- CUSTOMERS MODAL -->
+  <!-- CUSTOMERS LIST MODAL -->
   <div class="modal-overlay" id="customers-modal-overlay"></div>
-  <div class="modal" id="customers-modal" style="max-width:600px;">
+  <div class="modal" id="customers-modal" style="max-width:640px;">
     <div class="modal-header">
       <h2>Registered Users</h2>
       <button class="modal-close" id="customers-modal-close">&times;</button>
@@ -227,6 +227,16 @@
     <div class="customers-list" id="customers-list">
       <p class="empty-msg">Loading...</p>
     </div>
+  </div>
+
+  <!-- CUSTOMER DETAILS MODAL -->
+  <div class="modal-overlay" id="customer-detail-overlay"></div>
+  <div class="modal" id="customer-detail-modal" style="max-width:550px;">
+    <div class="modal-header">
+      <h2>Customer Details</h2>
+      <button class="modal-close" id="customer-detail-close">&times;</button>
+    </div>
+    <div class="customer-detail-body" id="customer-detail-body"></div>
   </div>
 
   <script src="js/admin.js"></script>
