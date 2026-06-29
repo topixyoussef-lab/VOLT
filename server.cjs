@@ -532,9 +532,19 @@ async function handleRequest(req, res) {
   if (p === '/' || p === '/index.html')
     return serveFile(res, path.join(ROOT, 'index.html'));
 
+  // Debug endpoint
+  if (p === '/api/debug') {
+    const apkPath = path.join(ROOT, 'downloads', 'VOLT.apk');
+    let exists = false, size = 0;
+    try { const s = fs.statSync(apkPath); exists = true; size = s.size; } catch {}
+    return sendJSON(res, 200, { root: ROOT, apkPath, exists, size, url: req.url, vercel: !!process.env.VERCEL });
+  }
+
   // Serve APK download
-  if (p === '/downloads/VOLT.apk')
-    return serveFile(res, path.join(ROOT, 'downloads', 'VOLT.apk'), 'application/vnd.android.package-archive');
+  if (p === '/downloads/VOLT.apk') {
+    const apkPath = path.join(ROOT, 'downloads', 'VOLT.apk');
+    return serveFile(res, apkPath, 'application/vnd.android.package-archive');
+  }
 
   // Serve static files (css, js, images)
   serveStatic(req, res);
