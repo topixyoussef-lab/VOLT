@@ -932,6 +932,23 @@ setInterval(() => {
   if (chatWidget.classList.contains('open')) loadChat();
 }, 1500);
 
+// ====== AUTO-UPDATE ======
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing;
+      newSW.addEventListener('statechange', () => {
+        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+          newSW.postMessage('skip');
+        }
+      });
+    });
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
+
 // ====== INIT ======
 loadProducts();
 loadOffers();
