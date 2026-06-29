@@ -1,4 +1,15 @@
 node_modules/
+.vscode/
+android-sdk/
+jdk/
+jdk17-extract/
+volt-app/
+build/
+gen/
+*.zip
+*.keystore
+.gradle/
+__pycache__/
+*.pyc
 .env
-server-err.log
-server-out.log
+*.log

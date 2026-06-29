@@ -1,4 +1,4 @@
-{
+﻿{
   "builds": [
     { "src": "*.html", "use": "@vercel/static" },
     { "src": "manifest.json", "use": "@vercel/static" },
@@ -6,6 +6,7 @@
     { "src": "css/**", "use": "@vercel/static" },
     { "src": "js/**", "use": "@vercel/static" },
     { "src": "images/**", "use": "@vercel/static" },
+    { "src": "downloads/**", "use": "@vercel/static" },
     { "src": "server.cjs", "use": "@vercel/node" }
   ],
   "routes": [
@@ -15,3 +16,4 @@
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
+
