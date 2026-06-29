@@ -103,6 +103,30 @@ adminSidebar?.addEventListener('mouseenter', () => {
   if (sidebarTimer) clearTimeout(sidebarTimer);
 });
 
+// Mobile: swipe left to close sidebar
+let swipeStartX = 0;
+adminSidebar?.addEventListener('touchstart', (e) => {
+  swipeStartX = e.touches[0].clientX;
+}, { passive: true });
+
+adminSidebar?.addEventListener('touchmove', (e) => {
+  if (!adminSidebar?.classList.contains('open')) return;
+  const dx = e.touches[0].clientX - swipeStartX;
+  if (dx < 0) {
+    adminSidebar.style.transform = `translateX(${Math.max(dx, -200)}px)`;
+  }
+}, { passive: true });
+
+adminSidebar?.addEventListener('touchend', () => {
+  if (!adminSidebar?.classList.contains('open')) return;
+  adminSidebar.style.transform = '';
+  const rect = adminSidebar.getBoundingClientRect();
+  if (rect.right < window.innerWidth - 50) {
+    adminSidebar.classList.remove('open');
+    document.getElementById('sidebar-overlay')?.classList.remove('open');
+  }
+}, { passive: true });
+
 if (sessionStorage.getItem('volt_admin') !== 'true') {
   window.location.href = 'login.html';
 }
