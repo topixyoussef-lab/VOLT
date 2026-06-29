@@ -757,6 +757,7 @@ function removeItem(index) {
 
 async function cancelOrder(orderId) {
   if (!confirm('Cancel this order?')) return;
+  let success = false;
   try {
     const res = await fetch('/api/orders/cancel', {
       method: 'POST',
@@ -764,13 +765,15 @@ async function cancelOrder(orderId) {
       body: JSON.stringify({ id: orderId })
     });
     const result = await res.json();
-    if (!result.success) { showToast('Cancel failed', 'error'); return; }
-  } catch { showToast('Connection error', 'error'); return; }
+    if (result.success) success = true;
+  } catch {}
   const order = myOrders.find(o => o.id === orderId);
-  if (order) order.canceled = true;
-  localStorage.setItem('volt_orders', JSON.stringify(myOrders));
+  if (order) {
+    order.canceled = true;
+    localStorage.setItem('volt_orders', JSON.stringify(myOrders));
+  }
   renderCart();
-  showToast('Order canceled.', 'cancel');
+  showToast(success ? 'Order canceled.' : 'Order canceled locally.', 'cancel');
 }
 
 function openCart() { cartOverlay.classList.add('open'); cartSidebar.classList.add('open'); }
