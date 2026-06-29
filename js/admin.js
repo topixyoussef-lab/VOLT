@@ -525,7 +525,15 @@ document.getElementById('offer-modal-overlay')?.addEventListener('click', () => 
 
 // ====== NOTIFICATIONS ======
 async function loadNotifications() {
-  const notifs = await apiGet('/notifications');
+  let notifs = await apiGet('/notifications');
+  // Merge localStorage notifications from store cancels (Vercel multi-instance)
+  try {
+    const local = JSON.parse(localStorage.getItem('volt_notifications') || '[]');
+    // Merge local into server list, dedup by id
+    const serverIds = new Set(notifs.map(n => n.id));
+    local.forEach(n => { if (!serverIds.has(n.id)) { notifs.push(n); serverIds.add(n.id); } });
+  } catch {}
+  notifs.sort((a, b) => b.id - a.id); // newest first
   const list = document.getElementById('notif-list');
   const badge = document.getElementById('notif-badge');
   if (notifs.length === 0) { list.innerHTML = '<p class="empty-msg">No notifications.</p>'; badge.classList.remove('has-unread'); return; }
@@ -542,6 +550,12 @@ setInterval(loadNotifications, 5000);
 
 document.getElementById('notif-tab-btn')?.addEventListener('click', async () => {
   await apiPost('/notifications/read');
+  // Mark local notifications as read too
+  try {
+    const local = JSON.parse(localStorage.getItem('volt_notifications') || '[]');
+    local.forEach(n => n.read = true);
+    localStorage.setItem('volt_notifications', JSON.stringify(local));
+  } catch {}
   loadNotifications();
 });
 

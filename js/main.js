@@ -773,6 +773,20 @@ async function cancelOrder(orderId) {
     localStorage.setItem('volt_orders', JSON.stringify(myOrders));
   }
   renderCart();
+  // Save notification in localStorage so admin sees it across Vercel instances
+  try {
+    const notifs = JSON.parse(localStorage.getItem('volt_notifications') || '[]');
+    notifs.push({
+      id: Date.now(),
+      type: 'cancel',
+      orderId: orderId,
+      customerName: customerData?.name || 'Unknown',
+      text: `Order canceled by ${customerData?.name || 'Unknown'}`,
+      time: new Date().toLocaleString('en-GB'),
+      read: false
+    });
+    localStorage.setItem('volt_notifications', JSON.stringify(notifs));
+  } catch {}
   showToast(success ? 'Order canceled.' : 'Order canceled locally.', 'cancel');
 }
 
