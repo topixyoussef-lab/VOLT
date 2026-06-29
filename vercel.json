@@ -12,6 +12,7 @@
   "routes": [
     { "src": "/admin", "dest": "/admin.html" },
     { "src": "/login", "dest": "/login.html" },
+    { "src": "/downloads/(.*)", "dest": "server.cjs" },
     { "src": "/api/(.*)", "dest": "server.cjs" },
     { "src": "/(.*)", "dest": "/$1" }
   ]

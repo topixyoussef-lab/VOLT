@@ -532,6 +532,10 @@ async function handleRequest(req, res) {
   if (p === '/' || p === '/index.html')
     return serveFile(res, path.join(ROOT, 'index.html'));
 
+  // Serve APK download
+  if (p === '/downloads/VOLT.apk')
+    return serveFile(res, path.join(ROOT, 'downloads', 'VOLT.apk'), 'application/vnd.android.package-archive');
+
   // Serve static files (css, js, images)
   serveStatic(req, res);
 }
