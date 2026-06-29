@@ -46,6 +46,14 @@ body {
   flex-direction: column;
   z-index: 200;
   overflow-y: auto;
+  transform: translateX(-180px);
+  transition: transform 0.2s ease;
+}
+.admin-sidebar:hover {
+  transform: translateX(0);
+}
+.admin-sidebar.open {
+  transform: translateX(0);
 }
 
 .sidebar-header {
@@ -115,7 +123,7 @@ body {
 
 /* Main content shifts right for sidebar */
 .admin-main {
-  margin-left: 200px;
+  margin-left: 20px;
   min-height: 100vh;
 }
 
@@ -519,6 +527,7 @@ body {
     transition: transform 0.25s;
   }
   .admin-sidebar.open { transform: translateX(0); }
+  .admin-sidebar:hover { transform: translateX(-100%); }
   .sidebar-toggle { display: block; }
   .admin-main { margin-left: 0; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
