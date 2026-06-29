@@ -359,7 +359,8 @@ async function editProduct(id) {
   document.getElementById('p-name').value = p.name;
   document.getElementById('p-price').value = p.price;
   document.getElementById('p-original').value = p.originalPrice || '';
-  document.getElementById('p-type').value = p.type || '';
+  const typeEl = document.getElementById('p-type');
+  if (typeEl) typeEl.value = p.type || '';
   document.getElementById('p-material').value = p.material || '';
   document.getElementById('p-colors').value = p.colors || '';
   document.getElementById('p-sizes').value = p.sizes.join(', ');
@@ -507,7 +508,8 @@ async function editOffer(id) {
   document.getElementById('offer-title').value = o.title || '';
   document.getElementById('offer-desc').value = o.desc || '';
   document.getElementById('offer-product').value = o.product || '';
-  document.getElementById('offer-product-type').value = o.productType || '';
+  const optEl = document.getElementById('offer-product-type');
+  if (optEl) optEl.value = o.productType || '';
   document.getElementById('offer-buy').value = o.buy || 4;
   document.getElementById('offer-free').value = o.free || 1;
   document.getElementById('offer-active').value = o.active ? 'true' : 'false';
