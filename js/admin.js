@@ -43,6 +43,15 @@ async function apiPut(path, body) {
 }
 async function apiDelete(path) { const r = await fetch(API + path, { method: 'DELETE' }); return r.json(); }
 
+function trendStr(today, yesterday) {
+  if (yesterday === 0 && today === 0) return '';
+  if (yesterday === 0) return '<span class="trend-up">&#9650; New</span>';
+  const pct = ((today - yesterday) / yesterday * 100).toFixed(1);
+  if (pct > 0) return `<span class="trend-up">&#9650; +${pct}%</span>`;
+  if (pct < 0) return `<span class="trend-down">&#9660; ${pct}%</span>`;
+  return '<span class="trend-eq">&#9654; 0%</span>';
+}
+
 async function loadOnlineCount() {
   const el = document.getElementById('stat-online');
   try {
@@ -57,8 +66,11 @@ async function loadDailyStats() {
     const r = await fetch('/api/admin/stats/daily');
     const d = await r.json();
     document.getElementById('stat-orders-today').textContent = d.ordersToday;
+    document.getElementById('trend-orders').innerHTML = trendStr(d.ordersToday, d.ordersYesterday);
     document.getElementById('stat-revenue-today').textContent = d.revenueToday + ' EGP';
+    document.getElementById('trend-revenue').innerHTML = trendStr(d.revenueToday, d.revenueYesterday);
     document.getElementById('stat-new-customers').textContent = d.newCustomersToday;
+    document.getElementById('trend-customers').innerHTML = trendStr(d.newCustomersToday, d.newCustomersYesterday);
     document.getElementById('stat-total-orders').textContent = d.totalOrders;
     document.getElementById('stat-total-revenue').textContent = d.totalRevenue + ' EGP';
     document.getElementById('stat-total-customers').textContent = d.totalCustomers;

@@ -127,9 +127,13 @@ body {
 }
 
 .stat-label { display: block; font-size: 12px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-.stat-value { display: block; font-size: 28px; font-weight: 800; color: #1a1a1a; }
+.stat-value { display: block; font-size: 28px; font-weight: 800; color: var(--text); }
 .stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
 .stat-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.stat-trend { display: block; font-size: 12px; font-weight: 600; margin-top: 4px; }
+.trend-up { color: #22c55e; }
+.trend-down { color: #ef4444; }
+.trend-eq { color: #888; }
 
 /* Product List */
 .product-list { margin-bottom: 60px; }

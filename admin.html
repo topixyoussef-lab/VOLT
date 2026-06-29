@@ -49,10 +49,6 @@
       <div class="container">
         <div class="stats-grid">
           <div class="stat-card">
-            <span class="stat-label">Online Now</span>
-            <span class="stat-value" id="stat-online">0</span>
-          </div>
-          <div class="stat-card">
             <span class="stat-label">Total Orders</span>
             <span class="stat-value" id="stat-orders">0</span>
           </div>
@@ -123,19 +119,26 @@
     <!-- === STATISTICS TAB === -->
     <section class="tab-content" id="tab-statistics">
       <div class="container">
-        <h2 class="section-title">Daily Statistics</h2>
+        <h2 class="section-title">Statistics</h2>
         <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Online Now</span>
+            <span class="stat-value" id="stat-online">0</span>
+          </div>
           <div class="stat-card">
             <span class="stat-label">Orders Today</span>
             <span class="stat-value" id="stat-orders-today">0</span>
+            <span class="stat-trend" id="trend-orders"></span>
           </div>
           <div class="stat-card">
             <span class="stat-label">Revenue Today</span>
             <span class="stat-value" id="stat-revenue-today">0 EGP</span>
+            <span class="stat-trend" id="trend-revenue"></span>
           </div>
           <div class="stat-card">
             <span class="stat-label">New Customers Today</span>
             <span class="stat-value" id="stat-new-customers">0</span>
+            <span class="stat-trend" id="trend-customers"></span>
           </div>
         </div>
         <div class="stats-grid" style="margin-top:12px;">

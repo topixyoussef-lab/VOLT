@@ -328,16 +328,25 @@ async function handleRequest(req, res) {
   if (p === '/api/admin/stats/daily' && req.method === 'GET') {
     const data = await readData();
     const today = new Date();
-    const dateStr = today.toLocaleDateString('en-GB'); // DD/MM/YYYY
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dateStr = today.toLocaleDateString('en-GB');
+    const yesStr = yesterday.toLocaleDateString('en-GB');
     const todayOrders = data.orders.filter(o => o.date && o.date.indexOf(dateStr) !== -1);
+    const yesOrders = data.orders.filter(o => o.date && o.date.indexOf(yesStr) !== -1);
     const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
+    const yesRevenue = yesOrders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
     const totalRevenue = data.orders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
     const todayCustomers = data.customers.filter(c => c.createdAt && c.createdAt.indexOf(dateStr) !== -1);
+    const yesCustomers = data.customers.filter(c => c.createdAt && c.createdAt.indexOf(yesStr) !== -1);
     return sendJSON(res, 200, {
       date: dateStr,
       ordersToday: todayOrders.length,
+      ordersYesterday: yesOrders.length,
       revenueToday: todayRevenue,
+      revenueYesterday: yesRevenue,
       newCustomersToday: todayCustomers.length,
+      newCustomersYesterday: yesCustomers.length,
       totalOrders: data.orders.length,
       totalRevenue: totalRevenue,
       totalCustomers: data.customers.length
