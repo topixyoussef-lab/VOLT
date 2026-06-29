@@ -242,11 +242,21 @@
       <div class="form-row">
         <div class="form-group">
           <label>Product Name (match)</label>
-          <input type="text" id="offer-product" placeholder="e.g. T-Shirts">
+          <input type="text" id="offer-product" placeholder="e.g. Wide Leg Pants">
         </div>
+        <div class="form-group">
+          <label>Product Type (match)</label>
+          <input type="text" id="offer-product-type" placeholder="e.g. T-Shirt">
+        </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label>Buy Qty</label>
           <input type="number" id="offer-buy" value="4" min="1">
+        </div>
+        <div class="form-group">
+          <label>Free Qty</label>
+          <input type="number" id="offer-free" value="1" min="1">
         </div>
       </div>
       <div class="form-row">
@@ -288,6 +298,10 @@
           <label>Original Price (EGP)</label>
           <input type="number" id="p-original" placeholder="400">
         </div>
+      </div>
+      <div class="form-group">
+        <label>Type (category)</label>
+        <input type="text" id="p-type" required placeholder="e.g. T-Shirt, Pants, Shorts">
       </div>
       <div class="form-group">
         <label>Material</label>

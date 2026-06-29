@@ -526,7 +526,7 @@ function renderGrid() {
   });
   grid.innerHTML = filtered.map(p => {
     const unavail = p.available === false;
-    const offer = activeOffers.find(o => o.active && (!o.product || o.product === p.name));
+    const offer = activeOffers.find(o => o.active && (!o.product || o.product === p.name) && (!o.productType || o.productType === p.type));
     const badge = unavail ? '<span class="offer-badge badge-unavail">Unavailable</span>' : (offer ? `<span class="offer-badge">${offer.title}</span>` : '');
     return `<div class="grid-card${unavail ? ' card-unavail' : ''}" onclick="${unavail ? '' : 'showProduct(' + p.id + ')'}">
       <div class="grid-card-img" style="background-image: url('${p.images[0] || ''}');">${badge}</div>
@@ -713,9 +713,28 @@ function renderCart() {
     let discountLabel = '';
     activeOffers.forEach(offer => {
       const pName = offer.product;
-      const qty = pName ? (productQtys[pName] || 0) : totalQty;
+      const pType = offer.productType;
+      let qty;
+      if (pName) {
+        qty = productQtys[pName] || 0;
+      } else if (pType) {
+        qty = Object.entries(productQtys)
+          .filter(([name]) => products.find(p => p.name === name && p.type === pType))
+          .reduce((sum, [, q]) => sum + q, 0);
+      } else {
+        qty = totalQty;
+      }
       if (qty >= offer.buy) {
-        const prices = pName ? (productPrices[pName] || []) : Object.values(productPrices).flat();
+        let prices;
+        if (pName) {
+          prices = productPrices[pName] || [];
+        } else if (pType) {
+          prices = Object.entries(productPrices)
+            .filter(([name]) => products.find(p => p.name === name && p.type === pType))
+            .flatMap(([, ps]) => ps);
+        } else {
+          prices = Object.values(productPrices).flat();
+        }
         prices.sort((a, b) => a - b);
         const freeCount = Math.floor(qty / offer.buy) * offer.free;
         for (let k = 0; k < freeCount && k < prices.length; k++) discount += prices[k];

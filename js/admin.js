@@ -380,13 +380,14 @@ document.getElementById('product-form')?.addEventListener('submit', async (e) =>
   const name = document.getElementById('p-name').value.trim();
   const price = parseFloat(document.getElementById('p-price').value);
   const originalPrice = parseFloat(document.getElementById('p-original').value) || null;
+  const type = document.getElementById('p-type').value.trim();
   const material = document.getElementById('p-material').value.trim();
   const colors = document.getElementById('p-colors').value.trim();
   const sizes = document.getElementById('p-sizes').value.split(',').map(s => s.trim()).filter(Boolean);
   const images = document.getElementById('p-images').value.split('\n').map(s => s.trim()).filter(Boolean);
   const available = document.getElementById('p-available').value === 'true';
-  if (!name || !price || !sizes.length || !images.length) return;
-  const payload = { name, price, originalPrice, material, colors, sizes, images, available };
+  if (!name || !type || !price || !sizes.length || !images.length) return;
+  const payload = { name, type, price, originalPrice, material, colors, sizes, images, available };
   if (editId) {
     await apiPut('/products/' + editId, payload);
     // Clear local override since server now has the correct value
@@ -471,7 +472,7 @@ async function renderOffers() {
       <div class="offer-info">
         <h4>${o.title}</h4>
         <p>${o.desc}</p>
-        <span class="offer-meta">${o.product || 'All'} &middot; Buy ${o.buy} get ${o.free} free &middot; ${o.active ? 'Active' : 'Inactive'}</span>
+        <span class="offer-meta">${o.product || 'All'}${o.productType ? ' / ' + o.productType : ''} &middot; Buy ${o.buy} get ${o.free} free &middot; ${o.active ? 'Active' : 'Inactive'}</span>
       </div>
       <div class="offer-actions">
         <button class="btn btn-outline btn-sm" onclick="toggleOffer(${o.id})">${o.active ? 'Deactivate' : 'Activate'}</button>
@@ -505,6 +506,7 @@ async function editOffer(id) {
   document.getElementById('offer-title').value = o.title || '';
   document.getElementById('offer-desc').value = o.desc || '';
   document.getElementById('offer-product').value = o.product || '';
+  document.getElementById('offer-product-type').value = o.productType || '';
   document.getElementById('offer-buy').value = o.buy || 4;
   document.getElementById('offer-free').value = o.free || 1;
   document.getElementById('offer-active').value = o.active ? 'true' : 'false';
@@ -526,11 +528,12 @@ document.getElementById('offer-form')?.addEventListener('submit', async (e) => {
   const title = document.getElementById('offer-title').value.trim();
   const desc = document.getElementById('offer-desc').value.trim();
   const product = document.getElementById('offer-product').value.trim();
+  const productType = document.getElementById('offer-product-type').value.trim();
   const buy = parseInt(document.getElementById('offer-buy').value) || 4;
   const free = parseInt(document.getElementById('offer-free').value) || 1;
   const active = document.getElementById('offer-active').value === 'true';
   if (!title || !desc) return;
-  const payload = { title, desc, product, buy, free, active };
+  const payload = { title, desc, product, productType, buy, free, active };
   if (editId) await apiPut('/offers/' + editId, payload);
   else await apiPost('/offers', payload);
   renderOffers();
