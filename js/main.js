@@ -923,7 +923,7 @@ chatInput?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatM
 
 setInterval(() => {
   if (chatWidget.classList.contains('open')) loadChat();
-}, 3000);
+}, 1500);
 
 // ====== INIT ======
 loadProducts();

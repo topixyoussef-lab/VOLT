@@ -546,7 +546,7 @@ async function loadNotifications() {
   `).join('');
 }
 
-setInterval(loadNotifications, 5000);
+setInterval(loadNotifications, 2000);
 
 document.getElementById('notif-tab-btn')?.addEventListener('click', async () => {
   await apiPost('/notifications/read');
@@ -590,7 +590,7 @@ async function selectCustomer(id) {
   document.getElementById('chat-conv-header').textContent = `Chat with ${getCustomerName(id)}`;
   await loadMessages();
   if (chatPollInterval) clearInterval(chatPollInterval);
-  chatPollInterval = setInterval(loadMessages, 3000);
+  chatPollInterval = setInterval(loadMessages, 1500);
 }
 
 function getCustomerName(id) {
