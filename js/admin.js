@@ -475,6 +475,7 @@ async function renderOffers() {
       </div>
       <div class="offer-actions">
         <button class="btn btn-outline btn-sm" onclick="toggleOffer(${o.id})">${o.active ? 'Deactivate' : 'Activate'}</button>
+        <button class="btn btn-sm" style="background:#333;color:#fff" onclick="editOffer(${o.id})">Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteOffer(${o.id})">Delete</button>
       </div>
     </div>
@@ -493,6 +494,22 @@ async function deleteOffer(id) {
   if (!confirm('Delete this offer?')) return;
   await apiDelete('/offers/' + id);
   renderOffers();
+}
+
+async function editOffer(id) {
+  const offers = await apiGet('/offers');
+  const o = offers.find(x => x.id === id);
+  if (!o) return;
+  document.getElementById('offer-modal-title').textContent = 'Edit Offer';
+  document.getElementById('offer-edit-id').value = o.id;
+  document.getElementById('offer-title').value = o.title || '';
+  document.getElementById('offer-desc').value = o.desc || '';
+  document.getElementById('offer-product').value = o.product || '';
+  document.getElementById('offer-buy').value = o.buy || 4;
+  document.getElementById('offer-free').value = o.free || 1;
+  document.getElementById('offer-active').value = o.active ? 'true' : 'false';
+  document.getElementById('offer-modal-overlay').classList.add('open');
+  document.getElementById('offer-modal').classList.add('open');
 }
 
 document.getElementById('add-offer-btn')?.addEventListener('click', () => {
