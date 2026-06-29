@@ -1,4 +1,4 @@
-const CACHE = 'volt-v1';
+const CACHE = 'volt-v2';
 const URLS = [
   '/',
   '/index.html',
@@ -9,7 +9,8 @@ const URLS = [
   '/js/main.js',
   '/js/admin.js',
   '/manifest.json',
-  '/images/download.png'
+  '/images/favicon.png',
+  '/images/icon-192x192.png'
 ];
 
 self.addEventListener('install', e => {
@@ -23,7 +24,13 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  );
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
+    );
+  } else {
+    e.respondWith(
+      caches.match(e.request).then(r => r || fetch(e.request))
+    );
+  }
 });
