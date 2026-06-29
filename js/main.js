@@ -330,6 +330,11 @@ async function loadProducts() {
   try {
     const res = await fetch('/api/products');
     products = await res.json();
+    // Apply local availability overrides from admin (Vercel multi-instance fallback)
+    try {
+      const overrides = JSON.parse(localStorage.getItem('volt_admin_avail') || '{}');
+      products.forEach(p => { if (overrides[p.id] !== undefined) p.available = overrides[p.id]; });
+    } catch {}
     buildSearchTerms();
     renderGrid();
   } catch {
@@ -338,6 +343,26 @@ async function loadProducts() {
   }
   hideSkeleton();
 }
+
+// Real-time refresh: poll products every 20s and re-render if changed
+let prevProductsJSON = '';
+setInterval(async () => {
+  try {
+    const res = await fetch('/api/products');
+    const fresh = await res.json();
+    try {
+      const overrides = JSON.parse(localStorage.getItem('volt_admin_avail') || '{}');
+      fresh.forEach(p => { if (overrides[p.id] !== undefined) p.available = overrides[p.id]; });
+    } catch {}
+    const fjson = JSON.stringify(fresh);
+    if (fjson !== prevProductsJSON) {
+      products = fresh;
+      prevProductsJSON = fjson;
+      buildSearchTerms();
+      renderGrid();
+    }
+  } catch {}
+}, 20000);
 
 const gridSection = document.getElementById('product-grid-section');
 const productPage = document.getElementById('product-page');
@@ -591,6 +616,9 @@ galleryMain?.addEventListener('mouseenter', () => galleryMain.classList.add('zoo
 galleryMain?.addEventListener('mouseleave', () => {
   galleryMain.classList.remove('zoom');
   galleryMain.style.backgroundPosition = 'center';
+  // Update add-to-cart button for unavailable products
+  addBtn.textContent = p.available === false ? 'Unavailable' : 'Add to Cart';
+  addBtn.disabled = p.available === false;
 });
 galleryMain?.addEventListener('mousemove', (e) => {
   const rect = galleryMain.getBoundingClientRect();
@@ -606,6 +634,7 @@ renderCart();
 
 addBtn?.addEventListener('click', () => {
   if (!currentProduct) return;
+  if (currentProduct.available === false) { showToast('This product is currently unavailable.', 'error'); return; }
   if (!selectedSize) { showToast('Please select a size first.', 'info'); return; }
   const existing = cart.find(item => item.id === currentProduct.id && item.size === selectedSize);
   if (existing) existing.qty++;
@@ -653,7 +682,11 @@ function renderCart() {
     html += '<div class="cart-section-title">Cart</div>';
     const productQtys = {};
     const productPrices = {};
+    let hasUnavail = false;
     cart.forEach((item, i) => {
+      const p = products.find(x => x.id === item.id);
+      const unavail = p && p.available === false;
+      if (unavail) hasUnavail = true;
       total += item.price * item.qty;
       totalQty += item.qty;
       const key = item.name;
@@ -661,11 +694,11 @@ function renderCart() {
       if (!productPrices[key]) productPrices[key] = [];
       for (let j = 0; j < item.qty; j++) productPrices[key].push(item.price);
       html += `
-        <div class="cart-item">
+        <div class="cart-item${unavail ? ' cart-item-unavail' : ''}">
           <button class="cart-item-del" onclick="removeItem(${i})">&times;</button>
           <div class="cart-item-img" style="background-image: url('${item.image}');"></div>
           <div class="cart-item-info">
-            <h4>${item.name}</h4>
+            <h4>${item.name}${unavail ? ' <span class="unavail-tag">Unavailable</span>' : ''}</h4>
             <p>Size: ${item.size}</p>
             <p class="item-price">${item.price} EGP</p>
             <div class="cart-item-qty">
@@ -694,6 +727,14 @@ function renderCart() {
       ? `<div class="promo-discount"><span>&#127873; ${discountLabel}</span><span>-${discount} EGP</span></div>`
       : '';
     cartFooter.style.display = 'block';
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (hasUnavail) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = 'Remove unavailable items';
+    } else {
+      checkoutBtn.disabled = false;
+      checkoutBtn.textContent = 'Proceed to Order';
+    }
     cartTotalPrice.textContent = `${finalTotal} EGP`;
     updateCartBadge();
   }

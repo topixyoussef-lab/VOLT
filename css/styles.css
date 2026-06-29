@@ -574,6 +574,9 @@ body {
 .cart-item-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
 .cart-item-info p { font-size: 13px; color: #666; margin-bottom: 2px; }
 .cart-item-info .item-price { font-weight: 700; color: #e63946; font-size: 15px; }
+.cart-item-unavail { opacity: 0.55; }
+.unavail-tag { font-size: 11px; color: #999; font-weight: 400; }
+.checkout-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .cart-item-qty { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .cart-item-qty button { width: 28px; height: 28px; border: 1px solid #ccc; background: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
