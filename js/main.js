@@ -526,7 +526,7 @@ function renderGrid() {
   });
   grid.innerHTML = filtered.map(p => {
     const unavail = p.available === false;
-    const offer = activeOffers.find(o => o.active && (!o.product || o.product === p.name) && (!o.productType || o.productType === p.type));
+    const offer = activeOffers.find(o => o.active && (!o.productType || o.productType === p.type));
     const badge = unavail ? '<span class="offer-badge badge-unavail">Unavailable</span>' : (offer ? `<span class="offer-badge">${offer.title}</span>` : '');
     return `<div class="grid-card${unavail ? ' card-unavail' : ''}" onclick="${unavail ? '' : 'showProduct(' + p.id + ')'}">
       <div class="grid-card-img" style="background-image: url('${p.images[0] || ''}');">${badge}</div>
@@ -680,8 +680,6 @@ function renderCart() {
 
   if (cart.length > 0) {
     html += '<div class="cart-section-title">Cart</div>';
-    const productQtys = {};
-    const productPrices = {};
     let hasUnavail = false;
     cart.forEach((item, i) => {
       const p = products.find(x => x.id === item.id);
@@ -689,10 +687,6 @@ function renderCart() {
       if (unavail) hasUnavail = true;
       total += item.price * item.qty;
       totalQty += item.qty;
-      const key = item.name;
-      productQtys[key] = (productQtys[key] || 0) + item.qty;
-      if (!productPrices[key]) productPrices[key] = [];
-      for (let j = 0; j < item.qty; j++) productPrices[key].push(item.price);
       html += `
         <div class="cart-item${unavail ? ' cart-item-unavail' : ''}">
           <button class="cart-item-del" onclick="removeItem(${i})">&times;</button>
@@ -712,29 +706,18 @@ function renderCart() {
     let discount = 0;
     let discountLabel = '';
     activeOffers.forEach(offer => {
-      const pName = offer.product;
       const pType = offer.productType;
       let qty;
-      if (pName) {
-        qty = productQtys[pName] || 0;
-      } else if (pType) {
-        qty = cart
-          .filter(item => { const p = products.find(x => x.id === item.id); return p && p.type === pType; })
-          .reduce((sum, item) => sum + item.qty, 0);
+      let prices;
+      if (pType) {
+        const matching = cart.filter(item => { const p = products.find(x => x.id === item.id); return p && p.type === pType; });
+        qty = matching.reduce((sum, item) => sum + item.qty, 0);
+        prices = matching.flatMap(item => Array(item.qty).fill(item.price));
       } else {
         qty = totalQty;
+        prices = cart.flatMap(item => Array(item.qty).fill(item.price));
       }
       if (qty >= offer.buy) {
-        let prices;
-        if (pName) {
-          prices = productPrices[pName] || [];
-        } else if (pType) {
-          prices = cart
-            .filter(item => { const p = products.find(x => x.id === item.id); return p && p.type === pType; })
-            .flatMap(item => Array(item.qty).fill(item.price));
-        } else {
-          prices = Object.values(productPrices).flat();
-        }
         prices.sort((a, b) => a - b);
         const freeCount = Math.floor(qty / offer.buy) * offer.free;
         for (let k = 0; k < freeCount && k < prices.length; k++) discount += prices[k];

@@ -474,7 +474,7 @@ async function renderOffers() {
       <div class="offer-info">
         <h4>${o.title}</h4>
         <p>${o.desc}</p>
-        <span class="offer-meta">${o.product || 'All'}${o.productType ? ' / ' + o.productType : ''} &middot; Buy ${o.buy} get ${o.free} free &middot; ${o.active ? 'Active' : 'Inactive'}</span>
+        <span class="offer-meta">${o.productType || 'All'} &middot; Buy ${o.buy} get ${o.free} free &middot; ${o.active ? 'Active' : 'Inactive'}</span>
       </div>
       <div class="offer-actions">
         <button class="btn btn-outline btn-sm" onclick="toggleOffer(${o.id})">${o.active ? 'Deactivate' : 'Activate'}</button>
@@ -507,7 +507,6 @@ async function editOffer(id) {
   document.getElementById('offer-edit-id').value = o.id;
   document.getElementById('offer-title').value = o.title || '';
   document.getElementById('offer-desc').value = o.desc || '';
-  document.getElementById('offer-product').value = o.product || '';
   const optEl = document.getElementById('offer-product-type');
   if (optEl) optEl.value = o.productType || '';
   document.getElementById('offer-buy').value = o.buy || 4;
@@ -530,13 +529,12 @@ document.getElementById('offer-form')?.addEventListener('submit', async (e) => {
   const editId = document.getElementById('offer-edit-id').value;
   const title = document.getElementById('offer-title').value.trim();
   const desc = document.getElementById('offer-desc').value.trim();
-  const product = document.getElementById('offer-product').value.trim();
   const productType = document.getElementById('offer-product-type').value.trim();
   const buy = parseInt(document.getElementById('offer-buy').value) || 4;
   const free = parseInt(document.getElementById('offer-free').value) || 1;
   const active = document.getElementById('offer-active').value === 'true';
   if (!title || !desc) return;
-  const payload = { title, desc, product, productType, buy, free, active };
+  const payload = { title, desc, productType, buy, free, active };
   if (editId) await apiPut('/offers/' + editId, payload);
   else await apiPost('/offers', payload);
   renderOffers();
