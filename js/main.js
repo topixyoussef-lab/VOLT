@@ -718,9 +718,9 @@ function renderCart() {
       if (pName) {
         qty = productQtys[pName] || 0;
       } else if (pType) {
-        qty = Object.entries(productQtys)
-          .filter(([name]) => products.find(p => p.name === name && p.type === pType))
-          .reduce((sum, [, q]) => sum + q, 0);
+        qty = cart
+          .filter(item => { const p = products.find(x => x.id === item.id); return p && p.type === pType; })
+          .reduce((sum, item) => sum + item.qty, 0);
       } else {
         qty = totalQty;
       }
@@ -729,9 +729,9 @@ function renderCart() {
         if (pName) {
           prices = productPrices[pName] || [];
         } else if (pType) {
-          prices = Object.entries(productPrices)
-            .filter(([name]) => products.find(p => p.name === name && p.type === pType))
-            .flatMap(([, ps]) => ps);
+          prices = cart
+            .filter(item => { const p = products.find(x => x.id === item.id); return p && p.type === pType; })
+            .flatMap(item => Array(item.qty).fill(item.price));
         } else {
           prices = Object.values(productPrices).flat();
         }
