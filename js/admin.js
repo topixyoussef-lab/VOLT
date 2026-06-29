@@ -70,14 +70,19 @@ document.addEventListener('click', (e) => {
   }
 });
 
-document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
+const toggleSidebar = () => {
   document.getElementById('admin-sidebar')?.classList.toggle('open');
   document.getElementById('sidebar-overlay')?.classList.toggle('open');
-});
+  document.getElementById('mobile-menu-btn')?.classList.toggle('hidden');
+};
+
+document.getElementById('sidebar-toggle')?.addEventListener('click', toggleSidebar);
+document.getElementById('mobile-menu-btn')?.addEventListener('click', toggleSidebar);
 
 document.getElementById('sidebar-overlay')?.addEventListener('click', () => {
   document.getElementById('admin-sidebar')?.classList.remove('open');
   document.getElementById('sidebar-overlay')?.classList.remove('open');
+  document.getElementById('mobile-menu-btn')?.classList.remove('hidden');
 });
 
 // Desktop: hover near left edge to reveal sidebar
@@ -124,6 +129,7 @@ adminSidebar?.addEventListener('touchend', () => {
   if (rect.right < window.innerWidth - 50) {
     adminSidebar.classList.remove('open');
     document.getElementById('sidebar-overlay')?.classList.remove('open');
+    document.getElementById('mobile-menu-btn')?.classList.remove('hidden');
   }
 }, { passive: true });
 
@@ -149,6 +155,7 @@ tabs.forEach(btn => {
     if (btn.dataset.tab === 'chat') { loadCustomerList(); }
     document.getElementById('admin-sidebar')?.classList.remove('open');
     document.getElementById('sidebar-overlay')?.classList.remove('open');
+    document.getElementById('mobile-menu-btn')?.classList.remove('hidden');
   });
 });
 
