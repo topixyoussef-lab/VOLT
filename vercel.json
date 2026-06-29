@@ -1,4 +1,4 @@
-﻿{
+{
   "builds": [
     { "src": "*.html", "use": "@vercel/static" },
     { "src": "manifest.json", "use": "@vercel/static" },
