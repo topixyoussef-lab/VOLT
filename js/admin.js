@@ -6,7 +6,7 @@ document.getElementById('admin-theme-toggle')?.addEventListener('click', () => {
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('volt_theme', next);
-  if (chartOrders) { chartOrders.destroy(); chartRevenue.destroy(); chartCustomers.destroy(); }
+  if (chartAnalytics) { chartAnalytics.destroy(); }
   initCharts();
   loadCharts();
 });
@@ -69,37 +69,36 @@ async function loadOnlineCount() {
   } catch { el.textContent = '—'; }
 }
 
-// Charts
-let chartOrders, chartRevenue, chartCustomers;
+// Chart
+let chartAnalytics;
 
 function initCharts() {
-  const common = {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const tickColor = isDark ? '#aaa' : '#888';
+
+  chartAnalytics = new Chart(document.getElementById('chart-analytics'), {
     type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Orders', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: false, tension: 0.3, pointRadius: 3 },
+        { label: 'Revenue', data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: false, tension: 0.3, pointRadius: 3 },
+        { label: 'New Customers', data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: false, tension: 0.3, pointRadius: 3 }
+      ]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 12 }, color: tickColor, padding: 16, usePointStyle: true } }
+      },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#888' } },
-        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 11 }, color: '#888' } }
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: tickColor } },
+        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { font: { size: 11 }, color: tickColor } }
       }
     }
-  };
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const lineColor = isDark ? '#60a5fa' : '#3b82f6';
-  const fillColor = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(59,130,246,0.1)';
-
-  chartOrders = new Chart(document.getElementById('chart-orders'), {
-    ...common,
-    data: { labels: [], datasets: [{ data: [], borderColor: lineColor, backgroundColor: fillColor, fill: true, tension: 0.3, pointRadius: 3 }] }
-  });
-  chartRevenue = new Chart(document.getElementById('chart-revenue'), {
-    ...common,
-    data: { labels: [], datasets: [{ data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.3, pointRadius: 3 }] }
-  });
-  chartCustomers = new Chart(document.getElementById('chart-customers'), {
-    ...common,
-    data: { labels: [], datasets: [{ data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3, pointRadius: 3 }] }
   });
 }
 
@@ -107,16 +106,11 @@ async function loadCharts() {
   try {
     const r = await fetch('/api/admin/stats/history');
     const data = await r.json();
-    const labels = data.map(d => d.date);
-    chartOrders.data.labels = labels;
-    chartOrders.data.datasets[0].data = data.map(d => d.orders);
-    chartOrders.update();
-    chartRevenue.data.labels = labels;
-    chartRevenue.data.datasets[0].data = data.map(d => d.revenue);
-    chartRevenue.update();
-    chartCustomers.data.labels = labels;
-    chartCustomers.data.datasets[0].data = data.map(d => d.customers);
-    chartCustomers.update();
+    chartAnalytics.data.labels = data.map(d => d.date);
+    chartAnalytics.data.datasets[0].data = data.map(d => d.orders);
+    chartAnalytics.data.datasets[1].data = data.map(d => d.revenue);
+    chartAnalytics.data.datasets[2].data = data.map(d => d.customers);
+    chartAnalytics.update();
   } catch {}
 }
 

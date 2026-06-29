@@ -135,19 +135,15 @@ body {
 .trend-down { color: #ef4444; }
 .trend-eq { color: #888; }
 
-/* Charts */
-.charts-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin: 24px 0;
-}
+/* Chart */
 .chart-card {
   background: var(--bg-card);
   border-radius: 12px;
   padding: 20px;
+  margin: 24px 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
+.chart-card.full-width { grid-column: 1 / -1; }
 .chart-title {
   font-size: 13px;
   font-weight: 600;
@@ -156,12 +152,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.chart-card canvas { max-height: 180px; }
-
-@media (max-width: 768px) {
-  .charts-row { grid-template-columns: 1fr; }
-  .chart-card canvas { max-height: 200px; }
-}
+.chart-card canvas { max-height: 220px; }
 
 /* Analytics Table */
 .analytics-table-wrap {
