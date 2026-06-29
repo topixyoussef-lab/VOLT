@@ -46,6 +46,30 @@ function playSelectSound() {
   } catch {}
 }
 
+// Global click sound for everything interactive
+function playClickSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(1000, ctx.currentTime);
+    g.gain.setValueAtTime(0.03, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.04);
+  } catch {}
+}
+
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (t.tagName === 'BUTTON' || t.tagName === 'A' || t.closest('button') || t.closest('a') || t.closest('[onclick]') || t.classList.contains('tab-btn') || t.classList.contains('btn')) {
+    playClickSound();
+  }
+});
+
 document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
   document.getElementById('admin-sidebar')?.classList.toggle('open');
   document.getElementById('sidebar-overlay')?.classList.toggle('open');
