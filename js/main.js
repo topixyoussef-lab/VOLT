@@ -133,10 +133,36 @@ function clearCustomer() {
   if (ro) ro.style.display = 'flex';
 }
 
+// Heartbeat every 30 seconds when logged in
+let heartbeatInterval = null;
+function startHeartbeat() {
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+  heartbeatInterval = setInterval(() => {
+    if (customerId) {
+      fetch('/api/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId })
+      }).catch(() => {});
+    }
+  }, 30000);
+  // Send immediately
+  if (customerId) {
+    fetch('/api/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId })
+    }).catch(() => {});
+  }
+}
+
 // Init: try to load existing customer, never auto-show registration
 ;(async () => {
   updateHeaderButtons();
-  if (customerId) await loadCustomer();
+  if (customerId) {
+    await loadCustomer();
+    if (customerReady) startHeartbeat();
+  }
 })();
 
 // ====== REGISTRATION ======
@@ -177,9 +203,11 @@ document.getElementById('reg-form')?.addEventListener('submit', async (e) => {
     if (!data.success) { showToast('Registration failed', 'error'); return; }
     customerData = data.customer;
     customerId = data.customer.id;
+    customerReady = true;
     sessionStorage.setItem('volt_customer_id', customerId);
     sessionStorage.setItem('volt_customer_data', JSON.stringify(customerData));
     updateHeaderButtons();
+    startHeartbeat();
     document.getElementById('reg-overlay').style.display = 'none';
   } catch {
     showToast('Connection error', 'error');

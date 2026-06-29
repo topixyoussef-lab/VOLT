@@ -14,6 +14,10 @@ const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 const USE_REDIS = !!(UPSTASH_URL && UPSTASH_TOKEN);
 const REDIS_KEY = 'volt_data';
 
+// In-memory active customer tracking (falls back if Redis unavailable)
+const activeMap = new Map();
+const ACTIVE_TTL = 70000; // 70 seconds (longer than 30s heartbeat interval)
+
 function redisGet(key) {
   return new Promise((resolve) => {
     if (!USE_REDIS) { resolve(null); return; }
@@ -274,6 +278,70 @@ async function handleRequest(req, res) {
     });
     writeData(data);
     return sendJSON(res, 200, { success: true });
+  }
+
+  // ---- ACTIVE / ONLINE TRACKING ----
+
+  if (p === '/api/heartbeat' && req.method === 'POST') {
+    const body = await parseBody(req);
+    if (body && body.customerId) {
+      const now = Date.now();
+      activeMap.set(body.customerId, now);
+      if (USE_REDIS) {
+        try {
+          const raw = await redisGet('active:customers');
+          const active = raw ? JSON.parse(raw) : {};
+          active[body.customerId] = now;
+          for (const k of Object.keys(active)) { if (now - active[k] > ACTIVE_TTL) delete active[k]; }
+          await redisSet('active:customers', JSON.stringify(active));
+        } catch {}
+      }
+    }
+    return sendJSON(res, 200, { success: true });
+  }
+
+  if (p === '/api/admin/online' && req.method === 'GET') {
+    const now = Date.now();
+    let count = 0;
+    if (USE_REDIS) {
+      try {
+        const raw = await redisGet('active:customers');
+        if (raw) {
+          const active = JSON.parse(raw);
+          for (const [k, v] of Object.entries(active)) {
+            if (now - v > ACTIVE_TTL) delete active[k];
+            else count++;
+          }
+          await redisSet('active:customers', JSON.stringify(active));
+        }
+      } catch {}
+    }
+    if (!count) {
+      activeMap.forEach((ts, id) => {
+        if (now - ts > ACTIVE_TTL) activeMap.delete(id);
+        else count++;
+      });
+    }
+    return sendJSON(res, 200, { count });
+  }
+
+  if (p === '/api/admin/stats/daily' && req.method === 'GET') {
+    const data = await readData();
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-GB'); // DD/MM/YYYY
+    const todayOrders = data.orders.filter(o => o.date && o.date.indexOf(dateStr) !== -1);
+    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
+    const totalRevenue = data.orders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
+    const todayCustomers = data.customers.filter(c => c.createdAt && c.createdAt.indexOf(dateStr) !== -1);
+    return sendJSON(res, 200, {
+      date: dateStr,
+      ordersToday: todayOrders.length,
+      revenueToday: todayRevenue,
+      newCustomersToday: todayCustomers.length,
+      totalOrders: data.orders.length,
+      totalRevenue: totalRevenue,
+      totalCustomers: data.customers.length
+    });
   }
 
   // ---- STORE ROUTES ----

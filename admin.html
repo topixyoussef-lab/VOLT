@@ -21,6 +21,7 @@
           <button class="tab-btn" data-tab="offers">Offers</button>
           <button class="tab-btn" data-tab="notifications" id="notif-tab-btn">Notifications <span class="notif-badge" id="notif-badge"></span></button>
           <button class="tab-btn" data-tab="chat">Chat</button>
+          <button class="tab-btn" data-tab="statistics">Statistics</button>
           <button class="tab-btn theme-toggle" id="admin-theme-toggle">&#9790;</button>
         </nav>
         <button class="btn btn-outline btn-sm" id="logout-btn">Logout</button>
@@ -47,9 +48,9 @@
     <section class="tab-content" id="tab-orders">
       <div class="container">
         <div class="stats-grid">
-          <div class="stat-card clickable" id="users-stat-card">
-            <span class="stat-label">Registered Users</span>
-            <span class="stat-value" id="stat-users">0</span>
+          <div class="stat-card">
+            <span class="stat-label">Online Now</span>
+            <span class="stat-value" id="stat-online">0</span>
           </div>
           <div class="stat-card">
             <span class="stat-label">Total Orders</span>
@@ -114,6 +115,41 @@
               <input type="text" id="admin-chat-input" placeholder="Type a reply..." autocomplete="off">
               <button class="btn btn-primary" id="admin-chat-send">Send</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- === STATISTICS TAB === -->
+    <section class="tab-content" id="tab-statistics">
+      <div class="container">
+        <h2 class="section-title">Daily Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Orders Today</span>
+            <span class="stat-value" id="stat-orders-today">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Revenue Today</span>
+            <span class="stat-value" id="stat-revenue-today">0 EGP</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">New Customers Today</span>
+            <span class="stat-value" id="stat-new-customers">0</span>
+          </div>
+        </div>
+        <div class="stats-grid" style="margin-top:12px;">
+          <div class="stat-card">
+            <span class="stat-label">Total Orders</span>
+            <span class="stat-value" id="stat-total-orders">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total Revenue</span>
+            <span class="stat-value" id="stat-total-revenue">0 EGP</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total Customers</span>
+            <span class="stat-value" id="stat-total-customers">0</span>
           </div>
         </div>
       </div>
@@ -215,28 +251,6 @@
       </div>
       <button type="submit" class="btn btn-primary" id="save-product">Save Product</button>
     </form>
-  </div>
-
-  <!-- CUSTOMERS LIST MODAL -->
-  <div class="modal-overlay" id="customers-modal-overlay"></div>
-  <div class="modal" id="customers-modal" style="max-width:640px;">
-    <div class="modal-header">
-      <h2>Registered Users</h2>
-      <button class="modal-close" id="customers-modal-close">&times;</button>
-    </div>
-    <div class="customers-list" id="customers-list">
-      <p class="empty-msg">Loading...</p>
-    </div>
-  </div>
-
-  <!-- CUSTOMER DETAILS MODAL -->
-  <div class="modal-overlay" id="customer-detail-overlay"></div>
-  <div class="modal" id="customer-detail-modal" style="max-width:550px;">
-    <div class="modal-header">
-      <h2>Customer Details</h2>
-      <button class="modal-close" id="customer-detail-close">&times;</button>
-    </div>
-    <div class="customer-detail-body" id="customer-detail-body"></div>
   </div>
 
   <script src="js/admin.js"></script>

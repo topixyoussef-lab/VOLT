@@ -150,33 +150,6 @@ body {
 .badge-avail { background: #e8f5e9; color: #2e7d32; }
 .badge-unavail { background: #ffebee; color: #c62828; }
 
-.customer-card-admin {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--bg-card);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
-.customer-info-admin { display: flex; flex-direction: column; gap: 2px; flex:1; }
-.customer-info-admin strong { font-size: 15px; color: var(--text); }
-.customer-info-admin span { font-size: 13px; color: #888; }
-.customer-info-admin small { font-size: 11px; color: #aaa; }
-.customer-actions-admin { display: flex; gap: 6px; }
-
-.detail-section { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-.detail-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.detail-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
-.detail-label { color: #888; font-weight: 500; min-width: 100px; }
-.detail-value { color: var(--text); text-align: right; flex:1; }
-.detail-order-row, .detail-msg-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; gap: 8px; }
-.detail-order-row.canceled { opacity: 0.5; text-decoration: line-through; }
-.detail-msg-row .msg-from { font-weight: 600; color: #e63946; min-width: 60px; }
-.detail-msg-row .msg-text { flex:1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.detail-msg-row .msg-time { color: #aaa; font-size: 11px; min-width: 90px; text-align: right; }
-
 .admin-product-img {
   width: 64px;
   height: 64px;

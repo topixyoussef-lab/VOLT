@@ -43,22 +43,40 @@ async function apiPut(path, body) {
 }
 async function apiDelete(path) { const r = await fetch(API + path, { method: 'DELETE' }); return r.json(); }
 
-async function loadUserCount() {
-  const statUsers = document.getElementById('stat-users');
+async function loadOnlineCount() {
+  const el = document.getElementById('stat-online');
   try {
-    const customers = await apiGet('/customers');
-    statUsers.textContent = customers.length;
-  } catch { statUsers.textContent = '—'; }
+    const r = await fetch('/api/admin/online');
+    const d = await r.json();
+    el.textContent = d.count;
+  } catch { el.textContent = '—'; }
+}
+
+async function loadDailyStats() {
+  try {
+    const r = await fetch('/api/admin/stats/daily');
+    const d = await r.json();
+    document.getElementById('stat-orders-today').textContent = d.ordersToday;
+    document.getElementById('stat-revenue-today').textContent = d.revenueToday + ' EGP';
+    document.getElementById('stat-new-customers').textContent = d.newCustomersToday;
+    document.getElementById('stat-total-orders').textContent = d.totalOrders;
+    document.getElementById('stat-total-revenue').textContent = d.totalRevenue + ' EGP';
+    document.getElementById('stat-total-customers').textContent = d.totalCustomers;
+  } catch {}
 }
 
 function initApp() {
-  loadUserCount();
+  loadOnlineCount();
+  loadDailyStats();
   renderProducts();
   renderOrders();
   renderOffers();
   loadNotifications();
   loadCustomerList();
 }
+
+setInterval(loadOnlineCount, 10000);
+setInterval(loadDailyStats, 15000);
 
 // ====== PRODUCTS ======
 async function renderProducts() {
@@ -358,111 +376,6 @@ async function sendMessage() {
 
 document.getElementById('admin-chat-send')?.addEventListener('click', sendMessage);
 document.getElementById('admin-chat-input')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
-
-// ====== CUSTOMERS ======
-async function showCustomers() {
-  const customers = await apiGet('/customers');
-  const list = document.getElementById('customers-list');
-  if (customers.length === 0) { list.innerHTML = '<p class="empty-msg">No registered users.</p>'; return; }
-  list.innerHTML = customers.map(c => `
-    <div class="customer-card-admin">
-      <div class="customer-info-admin">
-        <strong>${c.name}</strong>
-        <span>${c.phone} &middot; ${c.city}</span>
-        <small>${c.address}${c.location ? ' &middot; 📍' : ''} &middot; ${c.createdAt || ''}</small>
-      </div>
-      <div class="customer-actions-admin">
-        <button class="btn btn-outline btn-sm" onclick="showCustomerDetail(${c.id})">View</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">Delete</button>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('customers-modal-overlay').classList.add('open');
-  document.getElementById('customers-modal').classList.add('open');
-}
-
-async function showCustomerDetail(id) {
-  const customers = await apiGet('/customers');
-  const orders = await apiGet('/orders');
-  const messages = await apiGet('/chat');
-  const c = customers.find(x => x.id === id);
-  if (!c) return;
-  const custOrders = orders.filter(o => o.customerId === id);
-  const custMessages = messages.filter(m => m.customerId === id);
-  const locUrl = c.location
-    ? `https://www.google.com/maps?q=${c.location.lat},${c.location.lng}`
-    : (c.address ? `https://www.google.com/maps?q=${encodeURIComponent(c.city + ', ' + c.address)}` : null);
-  document.getElementById('customer-detail-body').innerHTML = `
-    <div class="detail-section">
-      <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${c.name}</span></div>
-      <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">${c.phone}</span></div>
-      <div class="detail-row"><span class="detail-label">City</span><span class="detail-value">${c.city}</span></div>
-      <div class="detail-row"><span class="detail-label">Address</span><span class="detail-value">${c.address}</span></div>
-      <div class="detail-row"><span class="detail-label">Registered</span><span class="detail-value">${c.createdAt || 'N/A'}</span></div>
-      <div class="detail-row"><span class="detail-label">Customer ID</span><span class="detail-value">${c.id}</span></div>
-      ${locUrl ? `<div class="detail-row"><span class="detail-label">Location</span><span class="detail-value"><a href="${locUrl}" target="_blank">View on Maps</a></span></div>` : ''}
-    </div>
-    <div class="detail-section">
-      <h4 style="margin:0 0 8px;font-size:14px;color:var(--text);">Orders (${custOrders.length})</h4>
-      ${custOrders.length === 0 ? '<p class="empty-msg" style="margin:0;">No orders.</p>' : custOrders.map((o, i) => `
-        <div class="detail-order-row${o.canceled ? ' canceled' : ''}">
-          <span>#${i + 1} — ${o.items.map(item => item.name + ' x' + item.qty).join(', ')}</span>
-          <span>${o.total} EGP ${o.canceled ? '🚫' : ''}</span>
-        </div>
-      `).join('')}
-    </div>
-    <div class="detail-section">
-      <h4 style="margin:0 0 8px;font-size:14px;color:var(--text);">Messages (${custMessages.length})</h4>
-      ${custMessages.length === 0 ? '<p class="empty-msg" style="margin:0;">No messages.</p>' : custMessages.map(m => `
-        <div class="detail-msg-row">
-          <span class="msg-from">${m.from === 'admin' ? 'Admin' : (m.name || 'Customer')}</span>
-          <span class="msg-text">${m.text}</span>
-          <span class="msg-time">${m.time}</span>
-        </div>
-      `).join('')}
-    </div>
-    <button class="btn btn-danger" style="width:100%;margin-top:12px;" onclick="deleteCustomerDetail(${c.id})">Delete Account &amp; Force Logout</button>
-  `;
-  document.getElementById('customer-detail-overlay').classList.add('open');
-  document.getElementById('customer-detail-modal').classList.add('open');
-}
-
-async function deleteCustomerDetail(id) {
-  if (!confirm('Delete this customer and all their data? The customer will be logged out immediately.')) return;
-  await apiDelete('/customers/' + id);
-  document.getElementById('customer-detail-overlay').classList.remove('open');
-  document.getElementById('customer-detail-modal').classList.remove('open');
-  showCustomers();
-  loadUserCount();
-  loadCustomerList();
-}
-
-async function deleteCustomer(id) {
-  if (!confirm('Delete this customer and all their messages?')) return;
-  await apiDelete('/customers/' + id);
-  showCustomers();
-  loadUserCount();
-  loadCustomerList();
-}
-
-document.getElementById('users-stat-card')?.addEventListener('click', showCustomers);
-document.getElementById('customers-modal-close')?.addEventListener('click', () => {
-  document.getElementById('customers-modal-overlay').classList.remove('open');
-  document.getElementById('customers-modal').classList.remove('open');
-});
-document.getElementById('customers-modal-overlay')?.addEventListener('click', () => {
-  document.getElementById('customers-modal-overlay').classList.remove('open');
-  document.getElementById('customers-modal').classList.remove('open');
-});
-
-document.getElementById('customer-detail-close')?.addEventListener('click', () => {
-  document.getElementById('customer-detail-overlay').classList.remove('open');
-  document.getElementById('customer-detail-modal').classList.remove('open');
-});
-document.getElementById('customer-detail-overlay')?.addEventListener('click', () => {
-  document.getElementById('customer-detail-overlay').classList.remove('open');
-  document.getElementById('customer-detail-modal').classList.remove('open');
-});
 
 if (sessionStorage.getItem('volt_admin') === 'true') {
   initApp();
