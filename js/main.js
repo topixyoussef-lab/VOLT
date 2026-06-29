@@ -526,7 +526,7 @@ function renderGrid() {
   });
   grid.innerHTML = filtered.map(p => {
     const unavail = p.available === false;
-    const offer = activeOffers.find(o => o.active && (!o.productType || o.productType === p.type));
+    const offer = activeOffers.find(o => o.active && (!o.productType || o.productType === p.type) && (!o.product || o.product === p.name));
     const badge = unavail ? '<span class="offer-badge badge-unavail">Unavailable</span>' : (offer ? `<span class="offer-badge">${offer.title}</span>` : '');
     return `<div class="grid-card${unavail ? ' card-unavail' : ''}" onclick="${unavail ? '' : 'showProduct(' + p.id + ')'}">
       <div class="grid-card-img" style="background-image: url('${p.images[0] || ''}');">${badge}</div>
@@ -707,10 +707,15 @@ function renderCart() {
     let discountLabel = '';
     activeOffers.forEach(offer => {
       const pType = offer.productType;
+      const pName = offer.product;
       let qty;
       let prices;
       if (pType) {
         const matching = cart.filter(item => { const p = products.find(x => x.id === item.id); return p && p.type === pType; });
+        qty = matching.reduce((sum, item) => sum + item.qty, 0);
+        prices = matching.flatMap(item => Array(item.qty).fill(item.price));
+      } else if (pName) {
+        const matching = cart.filter(item => item.name === pName);
         qty = matching.reduce((sum, item) => sum + item.qty, 0);
         prices = matching.flatMap(item => Array(item.qty).fill(item.price));
       } else {
