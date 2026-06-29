@@ -762,7 +762,7 @@ async function cancelOrder(orderId) {
     const res = await fetch('/api/orders/cancel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: orderId })
+      body: JSON.stringify({ id: orderId, customerName: customerData?.name || 'Unknown' })
     });
     const result = await res.json();
     if (result.success) success = true;

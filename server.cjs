@@ -454,7 +454,23 @@ async function handleRequest(req, res) {
     if (!body || !body.id) return sendJSON(res, 400, { error: 'Order ID required' });
     const data = await readData();
     const idx = data.orders.findIndex(o => o.id === body.id);
-    if (idx === -1) return sendJSON(res, 404, { error: 'Order not found' });
+    if (idx === -1) {
+      // Order not on this instance — still notify admin
+      if (body.customerName) {
+        if (!data.notifications) data.notifications = [];
+        data.notifications.push({
+          id: Date.now(),
+          type: 'cancel',
+          orderId: body.id,
+          customerName: body.customerName,
+          text: `Order canceled by ${body.customerName}`,
+          time: new Date().toLocaleString('en-GB'),
+          read: false
+        });
+        writeData(data);
+      }
+      return sendJSON(res, 200, { success: true });
+    }
     data.orders[idx].canceled = true;
     data.orders[idx].canceledAt = new Date().toLocaleString('en-GB');
     if (!data.notifications) data.notifications = [];
