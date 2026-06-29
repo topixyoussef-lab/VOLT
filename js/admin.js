@@ -359,6 +359,7 @@ async function editProduct(id) {
   document.getElementById('p-name').value = p.name;
   document.getElementById('p-price').value = p.price;
   document.getElementById('p-original').value = p.originalPrice || '';
+  document.getElementById('p-type').value = p.type || '';
   document.getElementById('p-material').value = p.material || '';
   document.getElementById('p-colors').value = p.colors || '';
   document.getElementById('p-sizes').value = p.sizes.join(', ');
