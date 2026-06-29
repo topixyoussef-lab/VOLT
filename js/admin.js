@@ -296,6 +296,11 @@ setInterval(loadCharts, 60000);
 // ====== PRODUCTS ======
 async function renderProducts() {
   const products = await apiGet('/products');
+  // Apply local overrides for Vercel multi-instance fallback
+  try {
+    const overrides = JSON.parse(localStorage.getItem('volt_admin_avail') || '{}');
+    products.forEach(p => { if (overrides[p.id] !== undefined) p.available = overrides[p.id]; });
+  } catch {}
   const list = document.getElementById('product-list');
   if (products.length === 0) { list.innerHTML = '<p class="empty-msg">No products yet.</p>'; return; }
   list.innerHTML = products.map(p => `
@@ -327,7 +332,14 @@ async function toggleAvailable(id) {
   const products = await apiGet('/products');
   const p = products.find(x => x.id === id);
   if (!p) return;
-  await apiPut('/products/' + id, { available: p.available === false });
+  const newAvail = p.available === false;
+  await apiPut('/products/' + id, { available: newAvail });
+  // Save locally for Vercel multi-instance fallback
+  try {
+    const overrides = JSON.parse(localStorage.getItem('volt_admin_avail') || '{}');
+    overrides[id] = newAvail;
+    localStorage.setItem('volt_admin_avail', JSON.stringify(overrides));
+  } catch {}
   renderProducts();
 }
 
@@ -368,7 +380,15 @@ document.getElementById('product-form')?.addEventListener('submit', async (e) =>
   const available = document.getElementById('p-available').value === 'true';
   if (!name || !price || !sizes.length || !images.length) return;
   const payload = { name, price, originalPrice, material, colors, sizes, images, available };
-  if (editId) await apiPut('/products/' + editId, payload);
+  if (editId) {
+    await apiPut('/products/' + editId, payload);
+    // Clear local override since server now has the correct value
+    try {
+      const overrides = JSON.parse(localStorage.getItem('volt_admin_avail') || '{}');
+      delete overrides[editId];
+      localStorage.setItem('volt_admin_avail', JSON.stringify(overrides));
+    } catch {}
+  }
   else await apiPost('/products', payload);
   renderProducts();
   document.getElementById('product-modal-overlay').classList.remove('open');
