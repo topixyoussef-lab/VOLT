@@ -11,6 +11,41 @@ document.getElementById('admin-theme-toggle')?.addEventListener('click', () => {
   loadCharts();
 });
 
+// Sound effects
+function playSidebarSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(600, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.15);
+    g.gain.setValueAtTime(0.08, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.15);
+  } catch {}
+}
+
+function playSelectSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(800, ctx.currentTime);
+    o.frequency.setValueAtTime(1000, ctx.currentTime + 0.05);
+    g.gain.setValueAtTime(0.06, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.1);
+  } catch {}
+}
+
 document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
   document.getElementById('admin-sidebar')?.classList.toggle('open');
   document.getElementById('sidebar-overlay')?.classList.toggle('open');
@@ -27,8 +62,9 @@ let sidebarTimer = null;
 
 document.addEventListener('mousemove', (e) => {
   if (window.innerWidth <= 768) return;
-  if (e.clientX < 10) {
-    adminSidebar?.classList.add('open');
+  if (e.clientX < 10 && adminSidebar && !adminSidebar.classList.contains('open')) {
+    adminSidebar.classList.add('open');
+    playSidebarSound();
   }
 });
 
@@ -56,6 +92,7 @@ document.getElementById('logout-btn')?.addEventListener('click', () => {
 const tabs = document.querySelectorAll('.tab-btn');
 tabs.forEach(btn => {
   btn.addEventListener('click', () => {
+    playSelectSound();
     tabs.forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
