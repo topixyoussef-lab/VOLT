@@ -154,7 +154,7 @@ async function handleRequest(req, res) {
     return serveFile(res, path.join(ROOT, 'admin.html'));
 
   if (p === '/api/admin/products' && req.method === 'GET')
-    return sendJSON(res, 200, await readData().products);
+    return sendJSON(res, 200, (await readData()).products);
 
   if (p === '/api/admin/products' && req.method === 'POST') {
     const body = await parseBody(req);
@@ -188,7 +188,7 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/admin/orders' && req.method === 'GET')
-    return sendJSON(res, 200, await readData().orders);
+    return sendJSON(res, 200, (await readData()).orders);
 
   if (p === '/api/admin/orders' && req.method === 'DELETE') {
     const data = await readData();
@@ -198,7 +198,7 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/admin/customers' && req.method === 'GET')
-    return sendJSON(res, 200, await readData().customers);
+    return sendJSON(res, 200, (await readData()).customers);
 
   const custDel = p.match(/^\/api\/admin\/customers\/(\d+)$/);
   if (custDel && req.method === 'DELETE') {
@@ -210,7 +210,7 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/admin/notifications' && req.method === 'GET')
-    return sendJSON(res, 200, (await readData().notifications || []).reverse());
+    return sendJSON(res, 200, ((await readData()).notifications || []).reverse());
 
   if (p === '/api/admin/notifications/read' && req.method === 'POST') {
     const data = await readData();
@@ -220,7 +220,7 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/admin/offers' && req.method === 'GET')
-    return sendJSON(res, 200, await readData().offers || []);
+    return sendJSON(res, 200, (await readData()).offers || []);
 
   if (p === '/api/admin/offers' && req.method === 'POST') {
     const body = await parseBody(req);
@@ -279,7 +279,7 @@ async function handleRequest(req, res) {
   // ---- STORE ROUTES ----
 
   if (p === '/api/products' && req.method === 'GET')
-    return sendJSON(res, 200, await readData().products);
+    return sendJSON(res, 200, (await readData()).products);
 
   if (p === '/api/register' && req.method === 'POST') {
     const body = await parseBody(req);
@@ -340,7 +340,7 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/offers' && req.method === 'GET')
-    return sendJSON(res, 200, await readData().offers || []);
+    return sendJSON(res, 200, (await readData()).offers || []);
 
   if (p === '/api/orders' && req.method === 'POST') {
     const body = await parseBody(req);
