@@ -113,7 +113,7 @@ body {
 /* Stats */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin: 32px 0;
 }
@@ -134,6 +134,47 @@ body {
 .trend-up { color: #22c55e; }
 .trend-down { color: #ef4444; }
 .trend-eq { color: #888; }
+
+/* Analytics Table */
+.analytics-table-wrap {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  overflow-x: auto;
+  margin-top: 24px;
+}
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.analytics-table th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.analytics-table th.trend-col,
+.analytics-table td.trend-col {
+  text-align: center;
+}
+.analytics-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.analytics-table tbody tr:hover {
+  background: rgba(0,0,0,0.02);
+}
+.analytics-table tbody tr td:first-child {
+  font-weight: 600;
+  color: var(--text);
+}
 
 /* Product List */
 .product-list { margin-bottom: 60px; }
@@ -398,16 +439,17 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .stats-grid { grid-template-columns: 1fr; gap: 12px; margin: 20px 0; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
   .order-body { grid-template-columns: 1fr; gap: 8px; }
   .stat-value { font-size: 24px; }
   .admin-product-card { flex-wrap: wrap; }
   .admin-product-actions { width: 100%; justify-content: flex-end; }
   .form-row { grid-template-columns: 1fr; }
   .modal { padding: 20px; }
+  .analytics-table th, .analytics-table td { padding: 10px 12px; font-size: 12px; }
 }
-
 @media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
   .admin-header { padding: 12px 0; }
   .admin-logo { font-size: 16px; }
   .tab-btn { padding: 6px 14px; font-size: 12px; }

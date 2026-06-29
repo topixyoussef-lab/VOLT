@@ -330,25 +330,57 @@ async function handleRequest(req, res) {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const twoWeeksAgo = new Date(today);
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
     const dateStr = today.toLocaleDateString('en-GB');
     const yesStr = yesterday.toLocaleDateString('en-GB');
+
+    function inRange(order, start, end) {
+      if (!order.date) return false;
+      const d = new Date(order.date.split(',')[0].split('/').reverse().join('-'));
+      return d >= start && d < end;
+    }
+
     const todayOrders = data.orders.filter(o => o.date && o.date.indexOf(dateStr) !== -1);
     const yesOrders = data.orders.filter(o => o.date && o.date.indexOf(yesStr) !== -1);
-    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
-    const yesRevenue = yesOrders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
-    const totalRevenue = data.orders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
+    const weekOrders = data.orders.filter(o => o.date && new Date(o.date.split(',')[0].split('/').reverse().join('-')) >= new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6));
+    const lastWeekOrders = data.orders.filter(o => o.date && new Date(o.date.split(',')[0].split('/').reverse().join('-')) >= new Date(today.getFullYear(), today.getMonth(), today.getDate() - 13) && new Date(o.date.split(',')[0].split('/').reverse().join('-')) < new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6));
+
+    function sumRevenue(ords) { return ords.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0); }
+    function sumItems(ords) { return ords.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.qty || 0), 0) : 0), 0); }
+    function avgOrder(ords) { const r = sumRevenue(ords); return ords.length ? Math.round(r / ords.length) : 0; }
+
     const todayCustomers = data.customers.filter(c => c.createdAt && c.createdAt.indexOf(dateStr) !== -1);
     const yesCustomers = data.customers.filter(c => c.createdAt && c.createdAt.indexOf(yesStr) !== -1);
+
     return sendJSON(res, 200, {
       date: dateStr,
+      // Today vs Yesterday
       ordersToday: todayOrders.length,
       ordersYesterday: yesOrders.length,
-      revenueToday: todayRevenue,
-      revenueYesterday: yesRevenue,
+      revenueToday: sumRevenue(todayOrders),
+      revenueYesterday: sumRevenue(yesOrders),
+      itemsToday: sumItems(todayOrders),
+      itemsYesterday: sumItems(yesOrders),
+      avgToday: avgOrder(todayOrders),
+      avgYesterday: avgOrder(yesOrders),
       newCustomersToday: todayCustomers.length,
       newCustomersYesterday: yesCustomers.length,
+      // This week vs Last week
+      ordersWeek: weekOrders.length,
+      ordersLastWeek: lastWeekOrders.length,
+      revenueWeek: sumRevenue(weekOrders),
+      revenueLastWeek: sumRevenue(lastWeekOrders),
+      itemsWeek: sumItems(weekOrders),
+      itemsLastWeek: sumItems(lastWeekOrders),
+      avgWeek: avgOrder(weekOrders),
+      avgLastWeek: avgOrder(lastWeekOrders),
+      // Totals
       totalOrders: data.orders.length,
-      totalRevenue: totalRevenue,
+      totalRevenue: sumRevenue(data.orders),
       totalCustomers: data.customers.length
     });
   }

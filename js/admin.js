@@ -45,11 +45,16 @@ async function apiDelete(path) { const r = await fetch(API + path, { method: 'DE
 
 function trendStr(today, yesterday) {
   if (yesterday === 0 && today === 0) return '';
-  if (yesterday === 0) return '<span class="trend-up">&#9650; New</span>';
+  if (yesterday === 0) return '<span class="trend-up">▲ New</span>';
   const pct = ((today - yesterday) / yesterday * 100).toFixed(1);
-  if (pct > 0) return `<span class="trend-up">&#9650; +${pct}%</span>`;
-  if (pct < 0) return `<span class="trend-down">&#9660; ${pct}%</span>`;
-  return '<span class="trend-eq">&#9654; 0%</span>';
+  if (pct > 0) return `<span class="trend-up">▲ +${pct}%</span>`;
+  if (pct < 0) return `<span class="trend-down">▼ ${pct}%</span>`;
+  return '<span class="trend-eq">► 0%</span>';
+}
+
+function trendStrRev(today, yesterday) {
+  // For metrics where lower is better (none currently, but keep for avg cost etc)
+  return trendStr(today, yesterday);
 }
 
 async function loadOnlineCount() {
@@ -65,15 +70,43 @@ async function loadDailyStats() {
   try {
     const r = await fetch('/api/admin/stats/daily');
     const d = await r.json();
-    document.getElementById('stat-orders-today').textContent = d.ordersToday;
-    document.getElementById('trend-orders').innerHTML = trendStr(d.ordersToday, d.ordersYesterday);
-    document.getElementById('stat-revenue-today').textContent = d.revenueToday + ' EGP';
-    document.getElementById('trend-revenue').innerHTML = trendStr(d.revenueToday, d.revenueYesterday);
-    document.getElementById('stat-new-customers').textContent = d.newCustomersToday;
-    document.getElementById('trend-customers').innerHTML = trendStr(d.newCustomersToday, d.newCustomersYesterday);
+    // Top summary cards
     document.getElementById('stat-total-orders').textContent = d.totalOrders;
     document.getElementById('stat-total-revenue').textContent = d.totalRevenue + ' EGP';
     document.getElementById('stat-total-customers').textContent = d.totalCustomers;
+
+    // Analysis table
+    document.getElementById('a-orders-today').textContent = d.ordersToday;
+    document.getElementById('a-orders-yesterday').textContent = d.ordersYesterday;
+    document.getElementById('a-trend-orders-day').innerHTML = trendStr(d.ordersToday, d.ordersYesterday);
+    document.getElementById('a-orders-week').textContent = d.ordersWeek;
+    document.getElementById('a-orders-lastweek').textContent = d.ordersLastWeek;
+    document.getElementById('a-trend-orders-week').innerHTML = trendStr(d.ordersWeek, d.ordersLastWeek);
+
+    document.getElementById('a-revenue-today').textContent = d.revenueToday + ' EGP';
+    document.getElementById('a-revenue-yesterday').textContent = d.revenueYesterday + ' EGP';
+    document.getElementById('a-trend-revenue-day').innerHTML = trendStr(d.revenueToday, d.revenueYesterday);
+    document.getElementById('a-revenue-week').textContent = d.revenueWeek + ' EGP';
+    document.getElementById('a-revenue-lastweek').textContent = d.revenueLastWeek + ' EGP';
+    document.getElementById('a-trend-revenue-week').innerHTML = trendStr(d.revenueWeek, d.revenueLastWeek);
+
+    document.getElementById('a-items-today').textContent = d.itemsToday;
+    document.getElementById('a-items-yesterday').textContent = d.itemsYesterday;
+    document.getElementById('a-trend-items-day').innerHTML = trendStr(d.itemsToday, d.itemsYesterday);
+    document.getElementById('a-items-week').textContent = d.itemsWeek;
+    document.getElementById('a-items-lastweek').textContent = d.itemsLastWeek;
+    document.getElementById('a-trend-items-week').innerHTML = trendStr(d.itemsWeek, d.itemsLastWeek);
+
+    document.getElementById('a-avg-today').textContent = d.avgToday + ' EGP';
+    document.getElementById('a-avg-yesterday').textContent = d.avgYesterday + ' EGP';
+    document.getElementById('a-trend-avg-day').innerHTML = trendStr(d.avgToday, d.avgYesterday);
+    document.getElementById('a-avg-week').textContent = d.avgWeek + ' EGP';
+    document.getElementById('a-avg-lastweek').textContent = d.avgLastWeek + ' EGP';
+    document.getElementById('a-trend-avg-week').innerHTML = trendStr(d.avgWeek, d.avgLastWeek);
+
+    document.getElementById('a-newcust-today').textContent = d.newCustomersToday;
+    document.getElementById('a-newcust-yesterday').textContent = d.newCustomersYesterday;
+    document.getElementById('a-trend-newcust-day').innerHTML = trendStr(d.newCustomersToday, d.newCustomersYesterday);
   } catch {}
 }
 

@@ -119,29 +119,12 @@
     <!-- === STATISTICS TAB === -->
     <section class="tab-content" id="tab-statistics">
       <div class="container">
-        <h2 class="section-title">Statistics</h2>
+        <h2 class="section-title">Analytics</h2>
         <div class="stats-grid">
           <div class="stat-card">
             <span class="stat-label">Online Now</span>
             <span class="stat-value" id="stat-online">0</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-label">Orders Today</span>
-            <span class="stat-value" id="stat-orders-today">0</span>
-            <span class="stat-trend" id="trend-orders"></span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Revenue Today</span>
-            <span class="stat-value" id="stat-revenue-today">0 EGP</span>
-            <span class="stat-trend" id="trend-revenue"></span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">New Customers Today</span>
-            <span class="stat-value" id="stat-new-customers">0</span>
-            <span class="stat-trend" id="trend-customers"></span>
-          </div>
-        </div>
-        <div class="stats-grid" style="margin-top:12px;">
           <div class="stat-card">
             <span class="stat-label">Total Orders</span>
             <span class="stat-value" id="stat-total-orders">0</span>
@@ -154,6 +137,69 @@
             <span class="stat-label">Total Customers</span>
             <span class="stat-value" id="stat-total-customers">0</span>
           </div>
+        </div>
+
+        <div class="analytics-table-wrap">
+          <table class="analytics-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Today</th>
+                <th>Yesterday</th>
+                <th class="trend-col">vs Yesterday</th>
+                <th>This Week</th>
+                <th>Last Week</th>
+                <th class="trend-col">vs Last Week</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Orders</td>
+                <td id="a-orders-today">0</td>
+                <td id="a-orders-yesterday">0</td>
+                <td class="trend-col" id="a-trend-orders-day"></td>
+                <td id="a-orders-week">0</td>
+                <td id="a-orders-lastweek">0</td>
+                <td class="trend-col" id="a-trend-orders-week"></td>
+              </tr>
+              <tr>
+                <td>Revenue</td>
+                <td id="a-revenue-today">0 EGP</td>
+                <td id="a-revenue-yesterday">0 EGP</td>
+                <td class="trend-col" id="a-trend-revenue-day"></td>
+                <td id="a-revenue-week">0 EGP</td>
+                <td id="a-revenue-lastweek">0 EGP</td>
+                <td class="trend-col" id="a-trend-revenue-week"></td>
+              </tr>
+              <tr>
+                <td>Items Sold</td>
+                <td id="a-items-today">0</td>
+                <td id="a-items-yesterday">0</td>
+                <td class="trend-col" id="a-trend-items-day"></td>
+                <td id="a-items-week">0</td>
+                <td id="a-items-lastweek">0</td>
+                <td class="trend-col" id="a-trend-items-week"></td>
+              </tr>
+              <tr>
+                <td>Avg Order Value</td>
+                <td id="a-avg-today">0 EGP</td>
+                <td id="a-avg-yesterday">0 EGP</td>
+                <td class="trend-col" id="a-trend-avg-day"></td>
+                <td id="a-avg-week">0 EGP</td>
+                <td id="a-avg-lastweek">0 EGP</td>
+                <td class="trend-col" id="a-trend-avg-week"></td>
+              </tr>
+              <tr>
+                <td>New Customers</td>
+                <td id="a-newcust-today">0</td>
+                <td id="a-newcust-yesterday">0</td>
+                <td class="trend-col" id="a-trend-newcust-day"></td>
+                <td id="a-newcust-week">—</td>
+                <td id="a-newcust-lastweek">—</td>
+                <td class="trend-col" id="a-trend-newcust-week"></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
