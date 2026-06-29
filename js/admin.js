@@ -21,6 +21,28 @@ document.getElementById('sidebar-overlay')?.addEventListener('click', () => {
   document.getElementById('sidebar-overlay')?.classList.remove('open');
 });
 
+// Desktop: hover near left edge to reveal sidebar
+const adminSidebar = document.getElementById('admin-sidebar');
+let sidebarTimer = null;
+
+document.addEventListener('mousemove', (e) => {
+  if (window.innerWidth <= 768) return;
+  if (e.clientX < 10) {
+    adminSidebar?.classList.add('open');
+  }
+});
+
+adminSidebar?.addEventListener('mouseleave', () => {
+  if (window.innerWidth <= 768) return;
+  sidebarTimer = setTimeout(() => {
+    adminSidebar?.classList.remove('open');
+  }, 300);
+});
+
+adminSidebar?.addEventListener('mouseenter', () => {
+  if (sidebarTimer) clearTimeout(sidebarTimer);
+});
+
 if (sessionStorage.getItem('volt_admin') !== 'true') {
   window.location.href = 'login.html';
 }
