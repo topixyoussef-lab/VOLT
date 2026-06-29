@@ -11,6 +11,16 @@ document.getElementById('admin-theme-toggle')?.addEventListener('click', () => {
   loadCharts();
 });
 
+document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
+  document.getElementById('admin-sidebar')?.classList.toggle('open');
+  document.getElementById('sidebar-overlay')?.classList.toggle('open');
+});
+
+document.getElementById('sidebar-overlay')?.addEventListener('click', () => {
+  document.getElementById('admin-sidebar')?.classList.remove('open');
+  document.getElementById('sidebar-overlay')?.classList.remove('open');
+});
+
 if (sessionStorage.getItem('volt_admin') !== 'true') {
   window.location.href = 'login.html';
 }
@@ -30,6 +40,8 @@ tabs.forEach(btn => {
     const tab = document.getElementById('tab-' + btn.dataset.tab);
     if (tab) tab.classList.add('active');
     if (btn.dataset.tab === 'chat') { loadCustomerList(); }
+    document.getElementById('admin-sidebar')?.classList.remove('open');
+    document.getElementById('sidebar-overlay')?.classList.remove('open');
   });
 });
 

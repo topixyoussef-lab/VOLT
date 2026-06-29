@@ -79,6 +79,9 @@ document.getElementById('theme-toggle')?.addEventListener('click', () => {
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('volt_theme', next);
 });
+document.getElementById('mobile-theme-toggle')?.addEventListener('click', () => {
+  document.getElementById('theme-toggle')?.click();
+});
 
 // ====== CUSTOMER DATA ======
 let customerId = sessionStorage.getItem('volt_customer_id');
@@ -94,15 +97,22 @@ try {
 function updateHeaderButtons() {
   const rb = document.getElementById('register-btn');
   const pb = document.getElementById('profile-btn');
-  if (!rb || !pb) return;
+  const mrb = document.getElementById('mobile-register-btn');
+  const mpb = document.getElementById('mobile-profile-btn');
   if (customerData) {
-    rb.classList.add('hidden');
-    pb.classList.remove('hidden');
+    if (rb) rb.classList.add('hidden');
+    if (pb) pb.classList.remove('hidden');
+    if (mrb) mrb.classList.add('hidden');
+    if (mpb) mpb.classList.remove('hidden');
   } else {
-    rb.classList.remove('hidden');
-    pb.classList.add('hidden');
+    if (rb) rb.classList.remove('hidden');
+    if (pb) pb.classList.add('hidden');
+    if (mrb) mrb.classList.remove('hidden');
+    if (mpb) mpb.classList.add('hidden');
   }
 }
+// Initial toggle on load
+updateHeaderButtons();
 
 async function loadCustomer() {
   if (!customerId) return false;
@@ -170,6 +180,7 @@ document.getElementById('reg-close')?.addEventListener('click', () => {
   document.getElementById('reg-overlay').style.display = 'none';
 });
 document.getElementById('register-btn')?.addEventListener('click', () => openRegister());
+document.getElementById('mobile-register-btn')?.addEventListener('click', () => openRegister());
 
 function openRegister() {
   document.getElementById('reg-overlay').style.display = 'flex';
@@ -216,12 +227,13 @@ document.getElementById('reg-form')?.addEventListener('submit', async (e) => {
 
 // ====== PROFILE ======
 const profileBtn = document.getElementById('profile-btn');
+const profileBtnMobile = document.getElementById('mobile-profile-btn');
 const profileOverlay = document.getElementById('profile-overlay');
 const profileModal = document.getElementById('profile-modal');
 const profileClose = document.getElementById('profile-close');
 const profileForm = document.getElementById('profile-form');
 
-profileBtn?.addEventListener('click', () => {
+function openProfile() {
   if (!customerData) { showToast('Register first to access profile', 'info'); return; }
   document.getElementById('prof-name').value = customerData.name || '';
   document.getElementById('prof-phone').value = customerData.phone || '';
@@ -229,7 +241,9 @@ profileBtn?.addEventListener('click', () => {
   document.getElementById('prof-address').value = customerData.address || '';
   profileOverlay.classList.add('open');
   profileModal.classList.add('open');
-});
+}
+profileBtn?.addEventListener('click', openProfile);
+profileBtnMobile?.addEventListener('click', openProfile);
 
 profileClose?.addEventListener('click', () => {
   profileOverlay.classList.remove('open');
@@ -320,6 +334,13 @@ const cartItems = document.getElementById('cart-items');
 const cartFooter = document.getElementById('cart-footer');
 const cartTotalPrice = document.getElementById('cart-total-price');
 const cartCount = document.getElementById('cart-count');
+const cartCountMobile = document.getElementById('mobile-cart-count');
+
+function updateCartBadge() {
+  const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+  cartCount.textContent = totalQty;
+  if (cartCountMobile) cartCountMobile.textContent = totalQty;
+}
 const modalOverlay = document.getElementById('modal-overlay');
 const orderModal = document.getElementById('order-modal');
 const orderForm = document.getElementById('order-form');
@@ -600,7 +621,7 @@ function renderCart() {
   if (cart.length === 0 && myOrders.filter(o => !o.canceled).length === 0) {
     cartItems.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
     cartFooter.style.display = 'none';
-    cartCount.textContent = '0';
+    updateCartBadge();
     return;
   }
 
@@ -650,7 +671,7 @@ function renderCart() {
       : '';
     cartFooter.style.display = 'block';
     cartTotalPrice.textContent = `${finalTotal} EGP`;
-    cartCount.textContent = totalQty;
+    updateCartBadge();
   }
   cartItems.innerHTML = html;
 }
@@ -691,6 +712,7 @@ function openCart() { cartOverlay.classList.add('open'); cartSidebar.classList.a
 function closeCart() { cartOverlay.classList.remove('open'); cartSidebar.classList.remove('open'); }
 
 document.querySelector('.cart-btn')?.addEventListener('click', openCart);
+document.getElementById('mobile-cart-btn')?.addEventListener('click', openCart);
 document.getElementById('cart-close')?.addEventListener('click', closeCart);
 cartOverlay?.addEventListener('click', closeCart);
 

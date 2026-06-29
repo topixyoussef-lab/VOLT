@@ -76,6 +76,11 @@
       </div>
       <button class="hamburger" aria-label="Menu">&#9776;</button>
     </div>
+    <nav class="nav" id="main-nav">
+      <a href="#" id="nav-home">Home</a>
+      <a href="#" id="nav-contact" onclick="document.getElementById('chat-toggle').click()">Contact Us</a>
+      <a href="/admin">Admin</a>
+    </nav>
   </header>
 
   <!-- PROMO BANNER -->
@@ -236,5 +241,16 @@
   </div>
 
   <script src="js/main.js"></script>
+
+  <!-- MOBILE BOTTOM BAR -->
+  <div class="mobile-bottom-bar" id="mobile-bottom-bar">
+    <button class="icon-btn theme-toggle" id="mobile-theme-toggle" title="Toggle theme">&#9790;</button>
+    <button class="icon-btn" id="mobile-register-btn" title="Register / Login">&#9997;</button>
+    <button class="icon-btn" id="mobile-profile-btn" title="My Profile">&#128100;</button>
+    <button class="icon-btn cart-btn" id="mobile-cart-btn" aria-label="Cart">
+      &#128722;
+      <span class="cart-count" id="mobile-cart-count">0</span>
+    </button>
+  </div>
 </body>
 </html>
