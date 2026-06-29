@@ -85,16 +85,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 8px 8px;
-  gap: 0;
-}
-
-.sidebar-nav .tab-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  padding: 0 14px;
+  gap: 2px;
 }
 
 .sidebar-footer {
@@ -103,14 +94,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.sidebar-footer .tab-btn,
-.sidebar-footer .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 14px;
 }
 
 .sidebar-footer .btn-outline {
@@ -146,6 +129,12 @@ body {
 .admin-main {
   margin-left: 0;
   min-height: 100vh;
+  padding: 0 24px;
+}
+
+.admin-main .container {
+  max-width: 100%;
+  padding: 0;
 }
 
 /* Sidebar overlay for mobile */
