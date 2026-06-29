@@ -127,7 +127,7 @@ function sendJSON(res, status, data) {
 function serveFile(res, filePath, contentType) {
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(500); res.end(); return; }
-    res.writeHead(200, { 'Content-Type': contentType || 'text/html; charset=utf-8' });
+    res.writeHead(200, { 'Content-Type': contentType || 'text/html; charset=utf-8', 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0' });
     res.end(data);
   });
 }
@@ -138,7 +138,7 @@ function serveStatic(req, res) {
   const ext = path.extname(fp);
   fs.readFile(fp, (err, data) => {
     if (err) { res.writeHead(404); res.end('Not found'); return; }
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': 'no-cache, no-store, must-revalidate' });
     res.end(data);
   });
 }
