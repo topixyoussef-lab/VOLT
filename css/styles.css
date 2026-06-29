@@ -821,7 +821,8 @@ body {
     font-weight: 700;
   }
   #mobile-register-btn, #mobile-profile-btn { display: inline-flex; }
-  .search-bar { display: none; }
+  .search-bar { margin: 0 6px; flex: 1; min-width: 0; }
+  .search-bar input { font-size: 14px; padding: 8px 12px; }
   body { padding-bottom: 56px; }
 
   /* Chat widget full-width on mobile */
@@ -916,5 +917,6 @@ body {
   .modal { padding: 20px 16px; }
   .grid-card-img { height: 200px; }
   .section-title { font-size: 22px; margin: 24px 0 16px; }
+  .search-bar input { font-size: 13px; padding: 6px 10px; }
   .logo { font-size: 20px; letter-spacing: 2px; }
 }
