@@ -6,6 +6,9 @@ document.getElementById('admin-theme-toggle')?.addEventListener('click', () => {
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('volt_theme', next);
+  if (chartOrders) { chartOrders.destroy(); chartRevenue.destroy(); chartCustomers.destroy(); }
+  initCharts();
+  loadCharts();
 });
 
 if (sessionStorage.getItem('volt_admin') !== 'true') {
@@ -66,6 +69,57 @@ async function loadOnlineCount() {
   } catch { el.textContent = '—'; }
 }
 
+// Charts
+let chartOrders, chartRevenue, chartCustomers;
+
+function initCharts() {
+  const common = {
+    type: 'line',
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#888' } },
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 11 }, color: '#888' } }
+      }
+    }
+  };
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const lineColor = isDark ? '#60a5fa' : '#3b82f6';
+  const fillColor = isDark ? 'rgba(96,165,250,0.15)' : 'rgba(59,130,246,0.1)';
+
+  chartOrders = new Chart(document.getElementById('chart-orders'), {
+    ...common,
+    data: { labels: [], datasets: [{ data: [], borderColor: lineColor, backgroundColor: fillColor, fill: true, tension: 0.3, pointRadius: 3 }] }
+  });
+  chartRevenue = new Chart(document.getElementById('chart-revenue'), {
+    ...common,
+    data: { labels: [], datasets: [{ data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.3, pointRadius: 3 }] }
+  });
+  chartCustomers = new Chart(document.getElementById('chart-customers'), {
+    ...common,
+    data: { labels: [], datasets: [{ data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3, pointRadius: 3 }] }
+  });
+}
+
+async function loadCharts() {
+  try {
+    const r = await fetch('/api/admin/stats/history');
+    const data = await r.json();
+    const labels = data.map(d => d.date);
+    chartOrders.data.labels = labels;
+    chartOrders.data.datasets[0].data = data.map(d => d.orders);
+    chartOrders.update();
+    chartRevenue.data.labels = labels;
+    chartRevenue.data.datasets[0].data = data.map(d => d.revenue);
+    chartRevenue.update();
+    chartCustomers.data.labels = labels;
+    chartCustomers.data.datasets[0].data = data.map(d => d.customers);
+    chartCustomers.update();
+  } catch {}
+}
+
 async function loadDailyStats() {
   try {
     const r = await fetch('/api/admin/stats/daily');
@@ -111,8 +165,10 @@ async function loadDailyStats() {
 }
 
 function initApp() {
+  initCharts();
   loadOnlineCount();
   loadDailyStats();
+  loadCharts();
   renderProducts();
   renderOrders();
   renderOffers();
@@ -122,6 +178,7 @@ function initApp() {
 
 setInterval(loadOnlineCount, 10000);
 setInterval(loadDailyStats, 15000);
+setInterval(loadCharts, 60000);
 
 // ====== PRODUCTS ======
 async function renderProducts() {

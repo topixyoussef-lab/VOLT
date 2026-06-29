@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/admin.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -136,6 +137,21 @@
           <div class="stat-card">
             <span class="stat-label">Total Customers</span>
             <span class="stat-value" id="stat-total-customers">0</span>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3 class="chart-title">Orders (7 Days)</h3>
+            <canvas id="chart-orders"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">Revenue (7 Days)</h3>
+            <canvas id="chart-revenue"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">New Customers (7 Days)</h3>
+            <canvas id="chart-customers"></canvas>
           </div>
         </div>
 

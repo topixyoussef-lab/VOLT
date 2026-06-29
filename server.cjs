@@ -385,6 +385,29 @@ async function handleRequest(req, res) {
     });
   }
 
+  if (p === '/api/admin/stats/history' && req.method === 'GET') {
+    const data = await readData();
+    const days = 7;
+    const result = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dStr = d.toLocaleDateString('en-GB');
+      const dayOrders = data.orders.filter(o => o.date && o.date.indexOf(dStr) !== -1);
+      const dayRevenue = dayOrders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.price || 0) * (i.qty || 0), 0) : 0), 0);
+      const dayItems = dayOrders.reduce((sum, o) => sum + (o.items ? o.items.reduce((s, i) => s + (i.qty || 0), 0) : 0), 0);
+      const dayCustomers = data.customers.filter(c => c.createdAt && c.createdAt.indexOf(dStr) !== -1);
+      result.push({
+        date: dStr.split('/')[0] + '/' + dStr.split('/')[1],
+        orders: dayOrders.length,
+        revenue: dayRevenue,
+        items: dayItems,
+        customers: dayCustomers.length
+      });
+    }
+    return sendJSON(res, 200, result);
+  }
+
   // ---- STORE ROUTES ----
 
   if (p === '/api/products' && req.method === 'GET')
