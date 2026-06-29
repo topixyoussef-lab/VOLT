@@ -225,6 +225,15 @@ profileForm?.addEventListener('submit', async (e) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone, city, address })
     });
+    if (res.status === 404) {
+      // Vercel multi-instance: save locally in sessionStorage
+      customerData = { ...customerData, name, phone, city, address } || { id: customerId, name, phone, city, address, location: null, createdAt: '' };
+      sessionStorage.setItem('volt_customer_data', JSON.stringify(customerData));
+      showToast('Profile saved locally', 'success');
+      profileOverlay.classList.remove('open');
+      profileModal.classList.remove('open');
+      return;
+    }
     const data = await res.json();
     if (!data.success) { showToast('Save failed', 'error'); return; }
     customerData = data.customer;

@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
@@ -7,9 +8,50 @@ const ROOT = __dirname;
 const DATA_FILE_SRC = path.join(__dirname, 'data', 'data.json');
 const DATA_FILE_TMP = path.join('/tmp', 'data.json');
 
+// Redis config (Upstash REST API — shared across all Vercel instances)
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const USE_REDIS = !!(UPSTASH_URL && UPSTASH_TOKEN);
+const REDIS_KEY = 'volt_data';
+
+function redisGet(key) {
+  return new Promise((resolve) => {
+    if (!USE_REDIS) { resolve(null); return; }
+    const url = new URL('/get/' + key, UPSTASH_URL);
+    const opts = {
+      hostname: url.hostname, path: url.pathname, method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + UPSTASH_TOKEN }
+    };
+    const req = https.request(opts, res => {
+      let body = '';
+      res.on('data', c => body += c);
+      res.on('end', () => { try { resolve(JSON.parse(body).result); } catch { resolve(null); } });
+    });
+    req.on('error', () => resolve(null));
+    req.end();
+  });
+}
+
+function redisSet(key, value) {
+  return new Promise((resolve) => {
+    if (!USE_REDIS) { resolve(false); return; }
+    const url = new URL('/set/' + key + '/' + encodeURIComponent(value), UPSTASH_URL);
+    const opts = {
+      hostname: url.hostname, path: url.pathname + url.search, method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + UPSTASH_TOKEN }
+    };
+    const req = https.request(opts, res => {
+      let body = '';
+      res.on('data', c => body += c);
+      res.on('end', () => resolve(body.trim() === 'OK'));
+    });
+    req.on('error', () => resolve(false));
+    req.end();
+  });
+}
+
 // Detect writable data path once at startup
 function detectDataFile() {
-  // On Vercel the source dir is read-only; try /tmp
   if (process.env.VERCEL) return DATA_FILE_TMP;
   try {
     fs.accessSync(path.join(__dirname, 'data'), fs.constants.W_OK);
@@ -20,7 +62,7 @@ function detectDataFile() {
 }
 let DATA_FILE = detectDataFile();
 
-// On Vercel: seed /tmp/data.json from the deployment copy if not there yet
+// Seed /tmp/data.json from the deployment copy on cold start
 if (DATA_FILE === DATA_FILE_TMP) {
   try {
     if (!fs.existsSync(DATA_FILE_TMP)) {
@@ -42,15 +84,27 @@ const MIME = {
   '.svg':  'image/svg+xml',
 };
 
-function readData() {
+async function readData() {
+  // Redis: shared across all Vercel instances
+  if (USE_REDIS) {
+    const raw = await redisGet(REDIS_KEY);
+    if (raw) { return JSON.parse(raw); }
+    // Seed Redis from file on first use
+    const seed = (() => { try { return JSON.parse(fs.readFileSync(DATA_FILE_SRC, 'utf-8')); } catch { return null; } })();
+    if (seed) { await redisSet(REDIS_KEY, JSON.stringify(seed, null, 2)); return seed; }
+    const empty = { products: [], orders: [], customers: [], messages: [], offers: [], notifications: [] };
+    await redisSet(REDIS_KEY, JSON.stringify(empty));
+    return empty;
+  }
+  // File-based fallback (local / Render)
   try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')); } catch {}
   try { return JSON.parse(fs.readFileSync(DATA_FILE_SRC, 'utf-8')); } catch {}
   return { products: [], orders: [], customers: [], messages: [], offers: [], notifications: [] };
 }
-function writeData(d) {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2), 'utf-8');
-  } catch { /* data survives only this warm invocation */ }
+async function writeData(d) {
+  const str = JSON.stringify(d, null, 2);
+  if (USE_REDIS) { await redisSet(REDIS_KEY, str); }
+  try { fs.writeFileSync(DATA_FILE, str, 'utf-8'); } catch {}
 }
 
 function parseBody(req) {
@@ -100,12 +154,12 @@ async function handleRequest(req, res) {
     return serveFile(res, path.join(ROOT, 'admin.html'));
 
   if (p === '/api/admin/products' && req.method === 'GET')
-    return sendJSON(res, 200, readData().products);
+    return sendJSON(res, 200, await readData().products);
 
   if (p === '/api/admin/products' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
-    const data = readData();
+    const data = await readData();
     body.id = Date.now();
     data.products.push(body);
     writeData(data);
@@ -117,7 +171,7 @@ async function handleRequest(req, res) {
     const id = parseInt(putM[1]);
     const body = await parseBody(req);
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
-    const data = readData();
+    const data = await readData();
     const idx = data.products.findIndex(x => x.id === id);
     if (idx === -1) return sendJSON(res, 404, { error: 'Not found' });
     data.products[idx] = { ...data.products[idx], ...body, id };
@@ -127,28 +181,28 @@ async function handleRequest(req, res) {
 
   const delM = p.match(/^\/api\/admin\/products\/(\d+)$/);
   if (delM && req.method === 'DELETE') {
-    const data = readData();
+    const data = await readData();
     data.products = data.products.filter(x => x.id !== parseInt(delM[1]));
     writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
   if (p === '/api/admin/orders' && req.method === 'GET')
-    return sendJSON(res, 200, readData().orders);
+    return sendJSON(res, 200, await readData().orders);
 
   if (p === '/api/admin/orders' && req.method === 'DELETE') {
-    const data = readData();
+    const data = await readData();
     data.orders = [];
     writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
   if (p === '/api/admin/customers' && req.method === 'GET')
-    return sendJSON(res, 200, readData().customers);
+    return sendJSON(res, 200, await readData().customers);
 
   const custDel = p.match(/^\/api\/admin\/customers\/(\d+)$/);
   if (custDel && req.method === 'DELETE') {
-    const data = readData();
+    const data = await readData();
     data.customers = data.customers.filter(x => x.id !== parseInt(custDel[1]));
     data.messages = (data.messages || []).filter(m => m.customerId !== parseInt(custDel[1]));
     writeData(data);
@@ -156,22 +210,22 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/admin/notifications' && req.method === 'GET')
-    return sendJSON(res, 200, (readData().notifications || []).reverse());
+    return sendJSON(res, 200, (await readData().notifications || []).reverse());
 
   if (p === '/api/admin/notifications/read' && req.method === 'POST') {
-    const data = readData();
+    const data = await readData();
     (data.notifications || []).forEach(n => n.read = true);
     writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
   if (p === '/api/admin/offers' && req.method === 'GET')
-    return sendJSON(res, 200, readData().offers || []);
+    return sendJSON(res, 200, await readData().offers || []);
 
   if (p === '/api/admin/offers' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
-    const data = readData();
+    const data = await readData();
     body.id = Date.now();
     if (!data.offers) data.offers = [];
     data.offers.push(body);
@@ -181,7 +235,7 @@ async function handleRequest(req, res) {
 
   const offerDel = p.match(/^\/api\/admin\/offers\/(\d+)$/);
   if (offerDel && req.method === 'DELETE') {
-    const data = readData();
+    const data = await readData();
     data.offers = (data.offers || []).filter(x => x.id !== parseInt(offerDel[1]));
     writeData(data);
     return sendJSON(res, 200, { success: true });
@@ -190,7 +244,7 @@ async function handleRequest(req, res) {
   if (offerDel && req.method === 'PUT') {
     const body = await parseBody(req);
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
-    const data = readData();
+    const data = await readData();
     const idx = (data.offers || []).findIndex(x => x.id === parseInt(offerDel[1]));
     if (idx === -1) return sendJSON(res, 404, { error: 'Not found' });
     data.offers[idx] = { ...data.offers[idx], ...body, id: data.offers[idx].id };
@@ -199,7 +253,7 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/admin/chat' && req.method === 'GET') {
-    const data = readData();
+    const data = await readData();
     const customerId = parseInt(u.searchParams.get('customerId'));
     let msgs = data.messages || [];
     if (customerId) msgs = msgs.filter(m => m.customerId === customerId);
@@ -209,7 +263,7 @@ async function handleRequest(req, res) {
   if (p === '/api/admin/chat' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body || !body.customerId) return sendJSON(res, 400, { error: 'customerId required' });
-    const data = readData();
+    const data = await readData();
     if (!data.messages) data.messages = [];
     data.messages.push({
       id: Date.now(),
@@ -225,12 +279,12 @@ async function handleRequest(req, res) {
   // ---- STORE ROUTES ----
 
   if (p === '/api/products' && req.method === 'GET')
-    return sendJSON(res, 200, readData().products);
+    return sendJSON(res, 200, await readData().products);
 
   if (p === '/api/register' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body || !body.name) return sendJSON(res, 400, { error: 'Name required' });
-    const data = readData();
+    const data = await readData();
     const customer = {
       id: Date.now(),
       name: body.name,
@@ -247,7 +301,7 @@ async function handleRequest(req, res) {
 
   const getCust = p.match(/^\/api\/customer\/(\d+)$/);
   if (getCust && req.method === 'GET') {
-    const data = readData();
+    const data = await readData();
     const c = data.customers.find(x => x.id === parseInt(getCust[1]));
     return sendJSON(res, c ? 200 : 404, c || { error: 'Not found' });
   }
@@ -255,14 +309,9 @@ async function handleRequest(req, res) {
   if (getCust && req.method === 'PUT') {
     const body = await parseBody(req);
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
-    const data = readData();
+    const data = await readData();
     const idx = data.customers.findIndex(x => x.id === parseInt(getCust[1]));
-    if (idx === -1) {
-      // Vercel multi-instance: customer not found on this instance, upsert
-      data.customers.push({ id: parseInt(getCust[1]), ...body, location: null, createdAt: '' });
-      writeData(data);
-      return sendJSON(res, 200, { success: true, customer: data.customers[data.customers.length - 1] });
-    }
+    if (idx === -1) return sendJSON(res, 404, { error: 'Not found' });
     data.customers[idx] = { ...data.customers[idx], ...body, id: data.customers[idx].id };
     writeData(data);
     return sendJSON(res, 200, { success: true, customer: data.customers[idx] });
@@ -271,7 +320,7 @@ async function handleRequest(req, res) {
   if (p === '/api/orders/cancel' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body || !body.id) return sendJSON(res, 400, { error: 'Order ID required' });
-    const data = readData();
+    const data = await readData();
     const idx = data.orders.findIndex(o => o.id === body.id);
     if (idx === -1) return sendJSON(res, 404, { error: 'Order not found' });
     data.orders[idx].canceled = true;
@@ -291,12 +340,12 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/offers' && req.method === 'GET')
-    return sendJSON(res, 200, readData().offers || []);
+    return sendJSON(res, 200, await readData().offers || []);
 
   if (p === '/api/orders' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body) return sendJSON(res, 400, { error: 'Invalid JSON' });
-    const data = readData();
+    const data = await readData();
     body.id = Date.now();
     body.date = new Date().toLocaleString('en-GB');
     data.orders.push(body);
@@ -307,7 +356,7 @@ async function handleRequest(req, res) {
   if (p === '/api/chat' && req.method === 'POST') {
     const body = await parseBody(req);
     if (!body || !body.customerId) return sendJSON(res, 400, { error: 'customerId required' });
-    const data = readData();
+    const data = await readData();
     if (!data.messages) data.messages = [];
     data.messages.push({
       id: Date.now(),
@@ -322,7 +371,7 @@ async function handleRequest(req, res) {
   }
 
   if (p === '/api/chat' && req.method === 'GET') {
-    const data = readData();
+    const data = await readData();
     const customerId = parseInt(u.searchParams.get('customerId'));
     const since = parseInt(u.searchParams.get('since')) || 0;
     let msgs = data.messages || [];
