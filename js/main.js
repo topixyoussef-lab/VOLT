@@ -2,14 +2,14 @@
 
 // ====== SMART FEATURES ======
 // Sound effects using Web Audio API
-function playTone(freq, duration, type) {
+function playTone(freq, duration, type, vol) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type || 'sine';
     osc.frequency.value = freq;
-    gain.gain.value = 0.08;
+    gain.gain.value = vol || 0.08;
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -18,13 +18,21 @@ function playTone(freq, duration, type) {
   } catch {}
 }
 
+function playChord(notes, interval) {
+  notes.forEach((n, i) => setTimeout(() => playTone(n.freq, n.dur || 0.15, n.type || 'sine', n.vol || 0.06), i * (interval || 80)));
+}
+
 const sounds = {
-  add:       () => { playTone(880, 0.15); setTimeout(() => playTone(1100, 0.1), 80); },
-  remove:    () => { playTone(400, 0.12); setTimeout(() => playTone(300, 0.1), 60); },
-  order:     () => { playTone(523, 0.1); setTimeout(() => playTone(659, 0.1), 100); setTimeout(() => playTone(784, 0.15), 200); },
-  chat:      () => { playTone(660, 0.1); setTimeout(() => playTone(880, 0.08), 60); },
-  cancel:    () => { playTone(300, 0.2); setTimeout(() => playTone(200, 0.2), 100); },
-  notify:    () => { playTone(880, 0.08); setTimeout(() => playTone(1100, 0.08), 80); setTimeout(() => playTone(880, 0.08), 160); },
+  add:       () => playChord([{freq:523,dur:0.1},{freq:659,dur:0.1},{freq:784,dur:0.15}], 60),
+  remove:    () => playChord([{freq:784,dur:0.08,type:'triangle'},{freq:523,dur:0.12,type:'triangle'}], 70),
+  order:     () => playChord([{freq:523,dur:0.1},{freq:659,dur:0.1},{freq:784,dur:0.1},{freq:1047,dur:0.2}], 100),
+  chat:      () => playChord([{freq:880,dur:0.08},{freq:1100,dur:0.06}], 50),
+  cancel:    () => playChord([{freq:392,dur:0.15,type:'sawtooth',vol:0.04},{freq:330,dur:0.2,type:'sawtooth',vol:0.03}], 100),
+  notify:    () => playChord([{freq:880,dur:0.06},{freq:1100,dur:0.06},{freq:880,dur:0.08}], 70),
+  error:     () => playChord([{freq:200,dur:0.15,type:'sawtooth',vol:0.05},{freq:180,dur:0.2,type:'sawtooth',vol:0.04}], 120),
+  success:   () => playChord([{freq:523,dur:0.1},{freq:659,dur:0.1},{freq:784,dur:0.1},{freq:1047,dur:0.15},{freq:1319,dur:0.2}], 80),
+  hover:     () => playTone(1200, 0.04, 'sine', 0.03),
+  swipe:     () => playTone(600, 0.08, 'triangle', 0.04),
 };
 
 // Toast notifications
@@ -90,6 +98,19 @@ document.addEventListener('click', (e) => {
   const t = e.target;
   if (t.tagName === 'BUTTON' || t.tagName === 'A' || t.closest('button') || t.closest('a') || t.closest('[onclick]') || t.classList.contains('icon-btn') || t.classList.contains('btn')) {
     playClickSound();
+  }
+});
+
+// Hover sound on grid cards
+let lastHoverTime = 0;
+document.addEventListener('mouseover', (e) => {
+  const card = e.target.closest('.grid-card');
+  if (card) {
+    const now = Date.now();
+    if (now - lastHoverTime > 150) {
+      sounds.hover();
+      lastHoverTime = now;
+    }
   }
 });
 
@@ -395,6 +416,10 @@ function updateCartBadge() {
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
   cartCount.textContent = totalQty;
   if (cartCountMobile) cartCountMobile.textContent = totalQty;
+  cartCount.classList.remove('pulse');
+  void cartCount.offsetWidth;
+  cartCount.classList.add('pulse');
+  if (cartCountMobile) { cartCountMobile.classList.remove('pulse'); void cartCountMobile.offsetWidth; cartCountMobile.classList.add('pulse'); }
 }
 const modalOverlay = document.getElementById('modal-overlay');
 const orderModal = document.getElementById('order-modal');
@@ -402,6 +427,7 @@ const orderForm = document.getElementById('order-form');
 
 let searchQuery = '';
 let searchTerms = [];
+let recentSearches = JSON.parse(localStorage.getItem('volt_recent_searches') || '[]');
 
 function buildSearchTerms() {
   const set = new Set();
@@ -413,6 +439,13 @@ function buildSearchTerms() {
   Object.entries(searchDict).forEach(([ar, en]) => { set.add(ar); set.add(en); });
   set.add('classic Solid'); set.add('Premium Soft Summer Milton');
   searchTerms = Array.from(set);
+}
+
+function saveRecentSearch(q) {
+  if (!q || recentSearches.includes(q)) return;
+  recentSearches.unshift(q);
+  if (recentSearches.length > 5) recentSearches.pop();
+  localStorage.setItem('volt_recent_searches', JSON.stringify(recentSearches));
 }
 
 const searchDict = {
@@ -427,19 +460,38 @@ const searchDict = {
   'mint': 'mint green', 'sage': 'sage green', 'nude': 'beige',
   'مارسيليا': 'marseilia', 'ليكرا': 'lycra', 'قطن': 'cotton',
   'ميلتون': 'milton', 'صيفي': 'summer', 'شتوي': 'winter',
+  'شORTS': 'shorts', 'شورت': 'shorts', 'TrackSuit': 'tracksuit', 'تراك suit': 'tracksuit',
 };
 
-function smartMatch(text, query) {
+// Fuzzy score: higher = better match
+function fuzzyScore(text, query) {
   const t = text.toLowerCase();
   const q = query.toLowerCase();
-  if (t.includes(q)) return true;
+  if (t === q) return 100;
+  if (t.startsWith(q)) return 90;
+  if (t.includes(q)) return 80;
+  // Check dictionary translations
   const translated = searchDict[q];
-  if (translated && t.includes(translated)) return true;
+  if (translated && t.includes(translated)) return 75;
   for (const [ar, en] of Object.entries(searchDict)) {
-    if (q.includes(ar) && t.includes(en)) return true;
-    if (q.includes(en) && t.includes(ar)) return true;
+    if (q.includes(ar) && t.includes(en)) return 70;
+    if (q.includes(en) && t.includes(ar)) return 65;
   }
-  return false;
+  // Partial word matching
+  const qWords = q.split(/\s+/);
+  let matchedWords = 0;
+  qWords.forEach(w => { if (t.includes(w)) matchedWords++; });
+  if (matchedWords > 0) return 40 + (matchedWords / qWords.length) * 25;
+  // Character-by-character fuzzy
+  let qi = 0, score = 0;
+  for (let ti = 0; ti < t.length && qi < q.length; ti++) {
+    if (t[ti] === q[qi]) { qi++; score += 2; } else { score -= 1; }
+  }
+  return qi === q.length ? Math.max(score, 20) : 0;
+}
+
+function smartMatch(text, query) {
+  return fuzzyScore(text, query) > 0;
 }
 
 const searchInput = document.getElementById('search-input');
@@ -471,16 +523,33 @@ function showSuggestions(query) {
     suggestionsEl.className = 'search-suggestions';
     document.body.appendChild(suggestionsEl);
   }
-  if (!query) { suggestionsEl.innerHTML = ''; suggestionsEl.style.display = 'none'; return; }
+  if (!query) {
+    // Show recent searches when empty
+    if (recentSearches.length > 0) {
+      suggestionsEl.style.display = 'block';
+      posSuggestions();
+      suggestionsEl.innerHTML = '<div class="suggestion-recent">Recent searches</div>' +
+        recentSearches.map(q => `<div class="suggestion-recent-item" onclick="document.getElementById('search-input').value='${q}';document.getElementById('search-input').dispatchEvent(new Event('input'));">${q}</div>`).join('');
+    } else {
+      suggestionsEl.innerHTML = '';
+      suggestionsEl.style.display = 'none';
+    }
+    return;
+  }
   const q = query.toLowerCase();
-  const matches = products.filter(p => {
-    if (p.available === false) return false;
-    return suggestionMatch(p, q);
-  }).slice(0, 5);
-  if (matches.length === 0) { suggestionsEl.style.display = 'none'; return; }
+  const scored = products.filter(p => p.available !== false).map(p => {
+    let score = Math.max(fuzzyScore(p.name, q), fuzzyScore(p.colors || '', q), fuzzyScore(p.material || '', q));
+    // Boost if type also matches
+    if (p.type && fuzzyScore(p.type, q) > 0) score += 10;
+    // Boost available products
+    if (p.available !== false) score += 5;
+    return { p, score };
+  }).filter(x => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);
+
+  if (scored.length === 0) { suggestionsEl.style.display = 'none'; return; }
   suggestionsEl.style.display = 'block';
   posSuggestions();
-  suggestionsEl.innerHTML = matches.map(p =>
+  suggestionsEl.innerHTML = scored.map(({ p }) =>
     `<div class="suggestion-product" onclick="selectSuggestion(${p.id})">
       <div class="suggestion-img" style="background-image: url('${p.images[0] || ''}');"></div>
       <div class="suggestion-info">
@@ -495,7 +564,7 @@ function selectSuggestion(id) {
   const p = products.find(x => x.id === id);
   if (!p) return;
   suggestionsEl.style.display = 'none';
-  searchInput.value = searchInput.value.trim();
+  saveRecentSearch(searchInput.value.trim());
   searchQuery = searchInput.value.trim();
   renderGrid();
 }
@@ -524,12 +593,16 @@ window.addEventListener('scroll', () => { if (suggestionsEl?.style.display === '
 window.addEventListener('resize', () => { if (suggestionsEl?.style.display === 'block') posSuggestions(); });
 
 function renderGrid() {
-  const filtered = products.filter(p => {
-    if (!searchQuery) return true;
-    return smartMatch(p.name, searchQuery)
-      || smartMatch(p.colors || '', searchQuery)
-      || smartMatch(p.material || '', searchQuery);
-  });
+  let filtered;
+  if (!searchQuery) {
+    filtered = products;
+  } else {
+    const q = searchQuery.toLowerCase();
+    filtered = products.map(p => {
+      const score = Math.max(fuzzyScore(p.name, q), fuzzyScore(p.colors || '', q), fuzzyScore(p.material || '', q));
+      return { p, score };
+    }).filter(x => x.score > 0).sort((a, b) => b.score - a.score).map(x => x.p);
+  }
   grid.innerHTML = filtered.map(p => {
     const unavail = p.available === false;
     const offer = activeOffers.find(o => o.active && (!o.productType || o.productType === p.type) && (!o.product || o.product === p.name));
@@ -559,6 +632,7 @@ function showProduct(id) {
   detailMaterial.textContent = p.material || '—';
   detailColors.textContent = p.colors || '—';
   renderSimilar(p);
+  renderRecommended(p);
   detailSizes.innerHTML = p.sizes.map(s =>
     `<span class="size-box" data-size="${s}">${s}</span>`
   ).join('');
@@ -617,6 +691,34 @@ function renderSimilar(current) {
   `).join('');
 }
 
+function renderRecommended(current) {
+  const el = document.getElementById('recommended-grid');
+  if (!el) return;
+  // Recommend by type first, then by material
+  let recs = products.filter(p => p.id !== current.id && p.available !== false && p.type && p.type === current.type);
+  if (recs.length < 3) {
+    const more = products.filter(p => p.id !== current.id && p.available !== false && p.material === current.material && !recs.find(r => r.id === p.id));
+    recs = recs.concat(more);
+  }
+  if (recs.length < 3) {
+    const more = products.filter(p => p.id !== current.id && p.available !== false && !recs.find(r => r.id === p.id));
+    recs = recs.concat(more);
+  }
+  recs = recs.slice(0, 4);
+  if (recs.length === 0) { el.closest('.similar-section').style.display = 'none'; return; }
+  el.closest('.similar-section').style.display = 'block';
+  el.innerHTML = recs.map(p => `
+    <div class="grid-card" onclick="showProduct(${p.id})">
+      <div class="grid-card-img" style="background-image: url('${p.images[0] || ''}');"></div>
+      <div class="grid-card-info">
+        <h3>${p.colors}</h3>
+        <span class="grid-price">${p.price} EGP</span>
+        ${p.originalPrice ? `<span class="grid-original">${p.originalPrice} EGP</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
 // Zoom
 galleryMain?.addEventListener('mouseenter', () => galleryMain.classList.add('zoom'));
 galleryMain?.addEventListener('mouseleave', () => {
@@ -640,13 +742,15 @@ renderCart();
 
 addBtn?.addEventListener('click', () => {
   if (!currentProduct) return;
-  if (currentProduct.available === false) { showToast('This product is currently unavailable.', 'error'); return; }
-  if (!selectedSize) { showToast('Please select a size first.', 'info'); return; }
+  if (currentProduct.available === false) { showToast('This product is currently unavailable.', 'error'); sounds.error(); return; }
+  if (!selectedSize) { showToast('Please select a size first.', 'info'); sounds.error(); return; }
   const existing = cart.find(item => item.id === currentProduct.id && item.size === selectedSize);
   if (existing) existing.qty++;
   else cart.push({ id: currentProduct.id, name: currentProduct.name, price: currentProduct.price, size: selectedSize, image: currentProduct.images[0], qty: 1 });
   selectedSize = null;
   showToast('Added to cart!', 'add');
+  addBtn.classList.add('btn-add-glow');
+  setTimeout(() => addBtn.classList.remove('btn-add-glow'), 600);
   document.querySelectorAll('.size-box').forEach(b => b.classList.remove('selected'));
   saveCart();
   renderCart();

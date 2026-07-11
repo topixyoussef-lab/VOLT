@@ -593,3 +593,94 @@ body {
   .stat-card { padding: 16px; }
   .stat-value { font-size: 22px; }
 }
+
+/* ====== ADMIN LIGHT EFFECTS ====== */
+
+@keyframes admin-glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(230,57,70,0.2); }
+  50% { box-shadow: 0 0 16px rgba(230,57,70,0.4); }
+}
+
+@keyframes admin-slide-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes admin-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes admin-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Stat card hover glow */
+.stat-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(230,57,70,0.12);
+}
+.stat-card.clickable:hover {
+  box-shadow: 0 8px 24px rgba(230,57,70,0.15);
+}
+
+/* Tab button glow on active */
+.tab-btn.active {
+  box-shadow: 0 2px 8px rgba(230,57,70,0.2);
+}
+
+/* Product card slide-in animation */
+.admin-product-card { animation: admin-slide-in 0.3s ease; }
+
+/* Modal scale-in */
+.modal { animation: admin-scale-in 0.25s ease; }
+
+/* Button glow on hover */
+.btn:hover {
+  box-shadow: 0 4px 12px rgba(230,57,70,0.2);
+}
+
+/* Offer card glow on active */
+.offer-card {
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.offer-card:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+
+/* Order card pulse */
+.order-card {
+  animation: admin-slide-in 0.3s ease;
+}
+
+/* Admin logo glow */
+.admin-logo {
+  transition: text-shadow 0.3s;
+}
+.admin-logo:hover {
+  text-shadow: 0 0 12px rgba(230,57,70,0.4);
+}
+
+/* Sidebar active tab glow */
+.tab-btn.active {
+  border-left: 3px solid #e63946;
+}
+
+/* Chart card hover */
+.chart-card {
+  transition: box-shadow 0.2s;
+}
+.chart-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+/* Form input focus glow */
+.form-group input:focus, .form-group select:focus {
+  box-shadow: 0 0 0 3px rgba(230,57,70,0.1);
+  border-color: #e63946;
+}

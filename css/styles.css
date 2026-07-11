@@ -217,6 +217,23 @@ body {
 .suggestion-name strong { font-weight: 700; color: #e63946; }
 .suggestion-price { font-size: 12px; color: #e63946; font-weight: 600; margin-top: 2px; }
 .suggestion-price s { color: var(--text-muted); font-weight: 400; font-size: 11px; }
+.suggestion-recent {
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+.suggestion-recent-item {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.suggestion-recent-item:hover { background: var(--bg); }
 
 .header-actions { display: flex; gap: 16px; }
 
@@ -917,6 +934,219 @@ body {
   .modal { padding: 20px 16px; }
   .grid-card-img { height: 200px; }
   .section-title { font-size: 22px; margin: 24px 0 16px; }
-  .search-bar input { font-size: 13px; padding: 6px 10px; }
   .logo { font-size: 20px; letter-spacing: 2px; }
+}
+
+/* ====== ANIMATIONS & LIGHT EFFECTS ====== */
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(230,57,70,0.3), 0 0 20px rgba(230,57,70,0.1); }
+  50% { box-shadow: 0 0 16px rgba(230,57,70,0.5), 0 0 40px rgba(230,57,70,0.2); }
+}
+
+@keyframes header-glow {
+  0%, 100% { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  50% { box-shadow: 0 2px 20px rgba(230,57,70,0.12); }
+}
+
+@keyframes card-shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes flash-success {
+  0% { box-shadow: 0 0 0 0 rgba(40,167,69,0.5); }
+  50% { box-shadow: 0 0 20px 8px rgba(40,167,69,0.3); }
+  100% { box-shadow: 0 0 0 0 rgba(40,167,69,0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes toast-enter {
+  from { opacity: 0; transform: translateX(40px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes rotate-glow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* Header animated glow */
+.header { animation: header-glow 4s ease-in-out infinite; }
+
+/* Logo hover glow */
+.logo:hover { text-shadow: 0 0 12px rgba(230,57,70,0.4); transition: text-shadow 0.3s; }
+
+/* Card enhanced hover */
+.grid-card {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  position: relative;
+}
+.grid-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(230,57,70,0.05) 0%, transparent 50%, rgba(230,57,70,0.05) 100%);
+}
+.grid-card:hover::after { opacity: 1; }
+.grid-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 16px 32px rgba(230,57,70,0.12), 0 4px 8px rgba(0,0,0,0.06);
+}
+
+/* Card image zoom on hover */
+.grid-card-img { transition: transform 0.5s ease, filter 0.3s; }
+.grid-card:hover .grid-card-img { transform: scale(1.03); filter: brightness(1.05); }
+
+/* Price glow on hover */
+.grid-card:hover .grid-price { text-shadow: 0 0 8px rgba(230,57,70,0.3); transition: text-shadow 0.3s; }
+
+/* Toast enhanced */
+.toast { animation: toast-enter 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.toast-success { border-left: 4px solid #28a745; }
+.toast-error { border-left: 4px solid #dc3545; }
+
+/* Cart badge pulse */
+.cart-count.pulse { animation: badge-pop 0.3s ease; }
+
+/* Button add-to-cart glow */
+.btn-add-glow {
+  animation: flash-success 0.6s ease;
+}
+
+/* Section title hover effect */
+.section-title {
+  position: relative;
+  display: inline-block;
+}
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e63946, transparent);
+  transition: width 0.4s ease;
+}
+.section-title:hover::after { width: 100%; }
+
+/* Offer badge float */
+.offer-badge { animation: float 3s ease-in-out infinite; }
+
+/* Promo banner shimmer */
+.promo-banner {
+  position: relative;
+  overflow: hidden;
+}
+.promo-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+  pointer-events: none;
+}
+
+/* Search bar glow on focus */
+.search-bar input:focus {
+  box-shadow: 0 0 0 3px rgba(230,57,70,0.15);
+  border-color: #e63946;
+  transition: all 0.3s;
+}
+
+/* Icon buttons hover effect */
+.icon-btn {
+  position: relative;
+  overflow: hidden;
+}
+.icon-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(230,57,70,0.15) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.icon-btn:hover::after { opacity: 1; }
+
+/* Cart sidebar slide with glow */
+.cart-sidebar.open {
+  box-shadow: -8px 0 30px rgba(230,57,70,0.1);
+}
+
+/* Chat widget pulse */
+.chat-toggle {
+  position: relative;
+}
+.chat-toggle::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(230,57,70,0.3) 0%, transparent 70%);
+  animation: pulse-ring 2s infinite;
+  pointer-events: none;
+}
+
+/* Skeleton shimmer */
+.skeleton-line, .skeleton-img {
+  background: linear-gradient(90deg, var(--border) 25%, rgba(255,255,255,0.4) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Smooth page transitions */
+.product-page { animation: scale-in 0.3s ease; }
+
+/* Footer logo hover */
+.footer-links a:hover {
+  color: #e63946;
+  text-shadow: 0 0 8px rgba(230,57,70,0.3);
+}
+
+/* Theme toggle rotation */
+.theme-toggle { transition: transform 0.5s ease; }
+.theme-toggle:hover { transform: rotate(30deg); }
+
+/* Size box selected glow */
+.size-box.selected {
+  box-shadow: 0 0 12px rgba(230,57,70,0.3);
+  border-color: #e63946;
 }
