@@ -330,11 +330,6 @@ async function loadProducts() {
   try {
     const res = await fetch('/api/products');
     products = await res.json();
-    // Apply local availability overrides from admin (Vercel multi-instance fallback)
-    try {
-      const overrides = JSON.parse(localStorage.getItem('volt_admin_avail') || '{}');
-      products.forEach(p => { if (overrides[p.id] !== undefined) p.available = overrides[p.id]; });
-    } catch {}
     buildSearchTerms();
     renderGrid();
   } catch {
@@ -344,16 +339,12 @@ async function loadProducts() {
   hideSkeleton();
 }
 
-// Real-time refresh: poll products every 20s and re-render if changed
+// Real-time refresh: poll products every 10s and re-render if changed
 let prevProductsJSON = '';
 setInterval(async () => {
   try {
     const res = await fetch('/api/products');
     const fresh = await res.json();
-    try {
-      const overrides = JSON.parse(localStorage.getItem('volt_admin_avail') || '{}');
-      fresh.forEach(p => { if (overrides[p.id] !== undefined) p.available = overrides[p.id]; });
-    } catch {}
     const fjson = JSON.stringify(fresh);
     if (fjson !== prevProductsJSON) {
       products = fresh;
@@ -362,7 +353,22 @@ setInterval(async () => {
       renderGrid();
     }
   } catch {}
-}, 20000);
+}, 10000);
+
+// Poll offers every 10s
+let prevOffersJSON = '';
+setInterval(async () => {
+  try {
+    const res = await fetch('/api/offers');
+    const fresh = await res.json();
+    const fjson = JSON.stringify(fresh);
+    if (fjson !== prevOffersJSON) {
+      activeOffers = fresh.filter(o => o.active);
+      prevOffersJSON = fjson;
+      renderGrid();
+    }
+  } catch {}
+}, 10000);
 
 const gridSection = document.getElementById('product-grid-section');
 const productPage = document.getElementById('product-page');
