@@ -1,6 +1,4 @@
-const savedTheme = localStorage.getItem('volt_theme') || 'light';
-document.documentElement.setAttribute('data-theme', savedTheme);
-document.getElementById('admin-view')?.setAttribute('data-theme', savedTheme);
+document.getElementById('admin-view')?.setAttribute('data-theme', localStorage.getItem('volt_theme') || 'light');
 
 document.getElementById('admin-theme-toggle')?.addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme');
@@ -48,22 +46,7 @@ function playSelectSound() {
   } catch {}
 }
 
-// Global click sound for everything interactive
-function playClickSound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.type = 'sine';
-    o.frequency.setValueAtTime(1000, ctx.currentTime);
-    g.gain.setValueAtTime(0.03, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-    o.start(ctx.currentTime);
-    o.stop(ctx.currentTime + 0.04);
-  } catch {}
-}
+// playClickSound is defined in main.js (loaded first)
 
 document.addEventListener('click', (e) => {
   const t = e.target;

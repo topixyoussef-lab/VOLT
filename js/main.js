@@ -677,7 +677,7 @@ document.getElementById('nav-home')?.addEventListener('click', (e) => {
 });
 
 function renderSimilar(current) {
-  const similar = products.filter(p => p.id !== current.id && p.name === current.name && p.available !== false);
+  const similar = products.filter(p => p.id !== current.id && p.type === current.type && p.available !== false);
   const el = document.getElementById('similar-grid');
   if (similar.length === 0) { el.closest('.similar-section').style.display = 'none'; return; }
   el.closest('.similar-section').style.display = 'block';
@@ -726,9 +726,10 @@ galleryMain?.addEventListener('mouseenter', () => galleryMain.classList.add('zoo
 galleryMain?.addEventListener('mouseleave', () => {
   galleryMain.classList.remove('zoom');
   galleryMain.style.backgroundPosition = 'center';
-  // Update add-to-cart button for unavailable products
-  addBtn.textContent = p.available === false ? 'Unavailable' : 'Add to Cart';
-  addBtn.disabled = p.available === false;
+  if (currentProduct) {
+    addBtn.textContent = currentProduct.available === false ? 'Unavailable' : 'Add to Cart';
+    addBtn.disabled = currentProduct.available === false;
+  }
 });
 galleryMain?.addEventListener('mousemove', (e) => {
   const rect = galleryMain.getBoundingClientRect();
