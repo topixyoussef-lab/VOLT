@@ -422,7 +422,7 @@
 
 #admin-view .form-group { margin-bottom: 16px; }
 #admin-view .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #333; }
-#admin-view .form-group input, #admin-view .form-group textarea {
+#admin-view .form-group input, #admin-view .form-group textarea, #admin-view .form-group select {
   width: 100%;
   padding: 10px 14px;
   border: 1px solid var(--border-input);
@@ -432,7 +432,7 @@
   font-family: inherit;
   transition: border-color 0.2s;
 }
-#admin-view .form-group input:focus, #admin-view .form-group textarea:focus { outline: none; border-color: var(--text); }
+#admin-view .form-group input:focus, #admin-view .form-group textarea:focus, #admin-view .form-group select:focus { outline: none; border-color: var(--text); }
 #admin-view .form-group textarea { resize: vertical; }
 
 #admin-view .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

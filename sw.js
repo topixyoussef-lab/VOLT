@@ -1,4 +1,4 @@
-const CACHE = 'volt-v5';
+const CACHE = 'volt-v6';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

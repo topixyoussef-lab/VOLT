@@ -166,7 +166,7 @@ async function handleRequest(req, res) {
     const data = await readData();
     body.id = Date.now();
     data.products.push(body);
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true, id: body.id });
   }
 
@@ -179,7 +179,7 @@ async function handleRequest(req, res) {
     const idx = data.products.findIndex(x => x.id === id);
     if (idx === -1) return sendJSON(res, 404, { error: 'Not found' });
     data.products[idx] = { ...data.products[idx], ...body, id };
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
@@ -187,7 +187,7 @@ async function handleRequest(req, res) {
   if (delM && req.method === 'DELETE') {
     const data = await readData();
     data.products = data.products.filter(x => x.id !== parseInt(delM[1]));
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
@@ -197,7 +197,7 @@ async function handleRequest(req, res) {
   if (p === '/api/admin/orders' && req.method === 'DELETE') {
     const data = await readData();
     data.orders = [];
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
@@ -209,7 +209,7 @@ async function handleRequest(req, res) {
     const data = await readData();
     data.customers = data.customers.filter(x => x.id !== parseInt(custDel[1]));
     data.messages = (data.messages || []).filter(m => m.customerId !== parseInt(custDel[1]));
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
@@ -219,7 +219,7 @@ async function handleRequest(req, res) {
   if (p === '/api/admin/notifications/read' && req.method === 'POST') {
     const data = await readData();
     (data.notifications || []).forEach(n => n.read = true);
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
@@ -233,7 +233,7 @@ async function handleRequest(req, res) {
     body.id = Date.now();
     if (!data.offers) data.offers = [];
     data.offers.push(body);
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true, id: body.id });
   }
 
@@ -241,7 +241,7 @@ async function handleRequest(req, res) {
   if (offerDel && req.method === 'DELETE') {
     const data = await readData();
     data.offers = (data.offers || []).filter(x => x.id !== parseInt(offerDel[1]));
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
@@ -252,7 +252,7 @@ async function handleRequest(req, res) {
     const idx = (data.offers || []).findIndex(x => x.id === parseInt(offerDel[1]));
     if (idx === -1) return sendJSON(res, 404, { error: 'Not found' });
     data.offers[idx] = { ...data.offers[idx], ...body, id: data.offers[idx].id };
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true, offer: data.offers[idx] });
   }
 
@@ -276,7 +276,7 @@ async function handleRequest(req, res) {
       text: body.text,
       time: new Date().toLocaleString('en-GB')
     });
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
@@ -427,7 +427,7 @@ async function handleRequest(req, res) {
       createdAt: new Date().toLocaleString('en-GB')
     };
     data.customers.push(customer);
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true, customer });
   }
 
@@ -445,7 +445,7 @@ async function handleRequest(req, res) {
     const idx = data.customers.findIndex(x => x.id === parseInt(getCust[1]));
     if (idx === -1) return sendJSON(res, 404, { error: 'Not found' });
     data.customers[idx] = { ...data.customers[idx], ...body, id: data.customers[idx].id };
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true, customer: data.customers[idx] });
   }
 
@@ -467,7 +467,7 @@ async function handleRequest(req, res) {
           time: new Date().toLocaleString('en-GB'),
           read: false
         });
-        writeData(data);
+        await writeData(data);
       }
       return sendJSON(res, 200, { success: true });
     }
@@ -483,7 +483,7 @@ async function handleRequest(req, res) {
       time: new Date().toLocaleString('en-GB'),
       read: false
     });
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 
@@ -497,7 +497,7 @@ async function handleRequest(req, res) {
     body.id = Date.now();
     body.date = new Date().toLocaleString('en-GB');
     data.orders.push(body);
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true, id: body.id });
   }
 
@@ -514,7 +514,7 @@ async function handleRequest(req, res) {
       text: body.text,
       time: new Date().toLocaleString('en-GB')
     });
-    writeData(data);
+    await writeData(data);
     return sendJSON(res, 200, { success: true });
   }
 

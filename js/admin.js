@@ -365,16 +365,23 @@ document.getElementById('product-form')?.addEventListener('submit', async (e) =>
   const sizes = document.getElementById('p-sizes').value.split(',').map(s => s.trim()).filter(Boolean);
   const images = document.getElementById('p-images').value.split('\n').map(s => s.trim()).filter(Boolean);
   const available = document.getElementById('p-available').value === 'true';
-  if (!name || !type || !price || !sizes.length || !images.length) return;
-  const payload = { name, type, price, originalPrice, material, colors, sizes, images, available };
-  if (editId) {
-    await apiPut('/products/' + editId, payload);
+  if (!name || !type || !price || !material || !colors || !sizes.length || !images.length) {
+    alert('Please fill all required fields.');
+    return;
   }
-  else await apiPost('/products', payload);
-  renderProducts();
-  syncStore();
-  document.getElementById('product-modal-overlay').classList.remove('open');
-  document.getElementById('product-modal').classList.remove('open');
+  try {
+    const payload = { name, type, price, originalPrice, material, colors, sizes, images, available };
+    let res;
+    if (editId) res = await apiPut('/products/' + editId, payload);
+    else res = await apiPost('/products', payload);
+    if (res && res.error) { alert('Error: ' + res.error); return; }
+    renderProducts();
+    syncStore();
+    document.getElementById('product-modal-overlay').classList.remove('open');
+    document.getElementById('product-modal').classList.remove('open');
+  } catch (err) {
+    alert('Failed to save product. ' + err.message);
+  }
 });
 
 document.getElementById('product-modal-close')?.addEventListener('click', () => {
@@ -507,14 +514,20 @@ document.getElementById('offer-form')?.addEventListener('submit', async (e) => {
   const buy = parseInt(document.getElementById('offer-buy').value) || 4;
   const free = parseInt(document.getElementById('offer-free').value) || 1;
   const active = document.getElementById('offer-active').value === 'true';
-  if (!title || !desc) return;
-  const payload = { title, desc, productType, buy, free, active };
-  if (editId) await apiPut('/offers/' + editId, payload);
-  else await apiPost('/offers', payload);
-  renderOffers();
-  syncStore();
-  document.getElementById('offer-modal-overlay').classList.remove('open');
-  document.getElementById('offer-modal').classList.remove('open');
+  if (!title || !desc) { alert('Please fill title and description.'); return; }
+  try {
+    const payload = { title, desc, productType, buy, free, active };
+    let res;
+    if (editId) res = await apiPut('/offers/' + editId, payload);
+    else res = await apiPost('/offers', payload);
+    if (res && res.error) { alert('Error: ' + res.error); return; }
+    renderOffers();
+    syncStore();
+    document.getElementById('offer-modal-overlay').classList.remove('open');
+    document.getElementById('offer-modal').classList.remove('open');
+  } catch (err) {
+    alert('Failed to save offer. ' + err.message);
+  }
 });
 
 document.getElementById('offer-modal-close')?.addEventListener('click', () => {
