@@ -10,7 +10,8 @@
     { "src": "server.cjs", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/admin", "dest": "/index.html" },
+    { "src": "/admin.html", "dest": "/index.html" },
     { "src": "/login", "dest": "/login.html" },
     { "src": "/downloads/(.*)", "dest": "server.cjs" },
     { "src": "/api/(.*)", "dest": "server.cjs" },

@@ -12,8 +12,10 @@
   <link rel="apple-touch-icon" href="/images/icon-192x192.png">
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/admin.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -64,198 +66,546 @@
     </form>
   </div>
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="container header-inner">
-      <a href="#" class="logo">VOLT</a>
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Search products..." autocomplete="off">
-      </div>
-      <div class="header-actions">
-        <button class="icon-btn theme-toggle" id="theme-toggle" title="Toggle theme">&#9790;</button>
-        <button class="icon-btn" id="register-btn" title="Register / Login">&#9997;</button>
-        <button class="icon-btn" id="profile-btn" title="My Profile">&#128100;</button>
-        <button class="icon-btn cart-btn" aria-label="Cart">
-          &#128722;
-          <span class="cart-count" id="cart-count">0</span>
-        </button>
-      </div>
-      <button class="hamburger" aria-label="Menu">&#9776;</button>
-    </div>
-  </header>
+  <!-- ===================== STORE VIEW ===================== -->
+  <div id="store-view">
 
-  <!-- PROMO BANNER -->
-  <div class="promo-banner" style="display:none">
-    <div class="container"></div>
-  </div>
-
-  <!-- PRODUCT GRID -->
-  <section class="product-grid-section" id="product-grid-section">
-    <div class="container">
-      <h2 class="section-title">Products</h2>
-      <div class="skeleton-grid" id="skeleton-grid">
-        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
-      </div>
-      <div class="product-grid" id="product-grid"></div>
-    </div>
-  </section>
-
-  <!-- PRODUCT DETAIL -->
-  <section class="product-page" id="product-page" style="display:none;">
-    <div class="container">
-      <button class="btn-back" id="btn-back">&larr; Back to Products</button>
-      <div class="product-detail">
-        <div class="product-gallery">
-          <div class="gallery-main" id="gallery-main"></div>
-          <div class="gallery-thumbs" id="gallery-thumbs"></div>
+    <!-- HEADER -->
+    <header class="header">
+      <div class="container header-inner">
+        <a href="#" class="logo">VOLT</a>
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Search products..." autocomplete="off">
         </div>
-        <div class="product-info-detail">
-          <h1 id="detail-name"></h1>
-          <div class="price-row">
-            <span class="price-sale" id="detail-price"></span>
-            <span class="price-original" id="detail-original"></span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Material:</span>
-            <span class="value" id="detail-material"></span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Colors:</span>
-            <span class="value" id="detail-colors"></span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Sizes:</span>
-            <span class="value" id="detail-sizes"></span>
-          </div>
-          <button class="btn btn-primary add-cart" id="add-to-cart">Add to Cart</button>
+        <div class="header-actions">
+          <button class="icon-btn theme-toggle" id="theme-toggle" title="Toggle theme">&#9790;</button>
+          <button class="icon-btn" id="register-btn" title="Register / Login">&#9997;</button>
+          <button class="icon-btn" id="profile-btn" title="My Profile">&#128100;</button>
+          <button class="icon-btn cart-btn" aria-label="Cart">
+            &#128722;
+            <span class="cart-count" id="cart-count">0</span>
+          </button>
         </div>
+        <button class="hamburger" aria-label="Menu">&#9776;</button>
       </div>
-      <div class="similar-section">
-        <h3 class="similar-title">Similar Products</h3>
-        <div class="similar-grid" id="similar-grid"></div>
-      </div>
-      <div class="similar-section">
-        <h3 class="similar-title">Recommended for You</h3>
-        <div class="similar-grid" id="recommended-grid"></div>
-      </div>
-    </div>
-  </section>
+    </header>
 
-  <!-- CART SIDEBAR -->
-  <div class="cart-overlay" id="cart-overlay"></div>
-  <div class="cart-sidebar" id="cart-sidebar">
-    <div class="cart-header">
-      <h2>Your Cart</h2>
-      <button class="cart-close" id="cart-close">&times;</button>
+    <!-- PROMO BANNER -->
+    <div class="promo-banner" style="display:none">
+      <div class="container"></div>
     </div>
-    <div class="cart-items" id="cart-items">
-      <p class="cart-empty">Your cart is empty.</p>
-    </div>
-    <div class="cart-footer" id="cart-footer" style="display:none;">
-      <div class="cart-total">
-        <span>Total</span>
-        <span id="cart-total-price">0 EGP</span>
-      </div>
-      <button class="btn btn-primary" id="checkout-btn">Confirm Order</button>
-    </div>
-  </div>
 
-  <!-- ORDER MODAL -->
-  <div class="modal-overlay" id="modal-overlay"></div>
-  <div class="modal" id="order-modal">
-    <div class="modal-header">
-      <h2>Order Details</h2>
-      <button class="modal-close" id="modal-close">&times;</button>
-    </div>
-    <form id="order-form">
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" id="cust-name" required>
-      </div>
-      <div class="form-group">
-        <label>City</label>
-        <input type="text" id="cust-city" required>
-      </div>
-      <div class="form-group">
-        <label>Street / Address</label>
-        <input type="text" id="cust-address" required>
-      </div>
-      <div class="form-group">
-        <label>Phone Number</label>
-        <input type="tel" id="cust-phone" required>
-      </div>
-      <button type="submit" class="btn btn-primary" id="submit-order">Send Order</button>
-    </form>
-  </div>
-
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-      <a href="#" class="logo"><img src="images/download.png" alt="VOLT" class="logo-img"> VOLT</a>
-        <p>Premium urban fashion for the bold and the fearless.</p>
-      </div>
-      <div class="footer-links">
-        <h4>Shop</h4>
-        <a href="#">T-Shirts</a>
-        <a href="#">Jackets</a>
-        <a href="#">Pants</a>
-        <a href="#">Shoes</a>
-      </div>
-      <div class="footer-links">
-        <h4>Support</h4>
-        <a href="#">Contact Us</a>
-        <a href="#">Returns</a>
-        <a href="#">Size Guide</a>
-        <a href="#">FAQ</a>
-      </div>
-      <div class="footer-links">
-        <h4>Company</h4>
-        <a href="#">About Us</a>
-        <a href="/admin">Admin Panel</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
+    <!-- PRODUCT GRID -->
+    <section class="product-grid-section" id="product-grid-section">
       <div class="container">
-        <p>&copy; 2026 VOLT. All rights reserved.</p>
+        <h2 class="section-title">Products</h2>
+        <div class="skeleton-grid" id="skeleton-grid">
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+        </div>
+        <div class="product-grid" id="product-grid"></div>
+      </div>
+    </section>
+
+    <!-- PRODUCT DETAIL -->
+    <section class="product-page" id="product-page" style="display:none;">
+      <div class="container">
+        <button class="btn-back" id="btn-back">&larr; Back to Products</button>
+        <div class="product-detail">
+          <div class="product-gallery">
+            <div class="gallery-main" id="gallery-main"></div>
+            <div class="gallery-thumbs" id="gallery-thumbs"></div>
+          </div>
+          <div class="product-info-detail">
+            <h1 id="detail-name"></h1>
+            <div class="price-row">
+              <span class="price-sale" id="detail-price"></span>
+              <span class="price-original" id="detail-original"></span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Material:</span>
+              <span class="value" id="detail-material"></span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Colors:</span>
+              <span class="value" id="detail-colors"></span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Sizes:</span>
+              <span class="value" id="detail-sizes"></span>
+            </div>
+            <button class="btn btn-primary add-cart" id="add-to-cart">Add to Cart</button>
+          </div>
+        </div>
+        <div class="similar-section">
+          <h3 class="similar-title">Similar Products</h3>
+          <div class="similar-grid" id="similar-grid"></div>
+        </div>
+        <div class="similar-section">
+          <h3 class="similar-title">Recommended for You</h3>
+          <div class="similar-grid" id="recommended-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CART SIDEBAR -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+      <div class="cart-header">
+        <h2>Your Cart</h2>
+        <button class="cart-close" id="cart-close">&times;</button>
+      </div>
+      <div class="cart-items" id="cart-items">
+        <p class="cart-empty">Your cart is empty.</p>
+      </div>
+      <div class="cart-footer" id="cart-footer" style="display:none;">
+        <div class="cart-total">
+          <span>Total</span>
+          <span id="cart-total-price">0 EGP</span>
+        </div>
+        <button class="btn btn-primary" id="checkout-btn">Confirm Order</button>
       </div>
     </div>
-  </footer>
 
-  <!-- CHAT WIDGET -->
-  <button class="chat-toggle" id="chat-toggle">&#128172;</button>
-  <div class="chat-widget" id="chat-widget">
-    <div class="chat-widget-header">
-      <span>VOLT Support</span>
-      <button class="chat-close-btn" id="chat-close-btn">&times;</button>
+    <!-- ORDER MODAL -->
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal" id="order-modal">
+      <div class="modal-header">
+        <h2>Order Details</h2>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <form id="order-form">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="cust-name" required>
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" id="cust-city" required>
+        </div>
+        <div class="form-group">
+          <label>Street / Address</label>
+          <input type="text" id="cust-address" required>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="cust-phone" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submit-order">Send Order</button>
+      </form>
     </div>
-    <div class="chat-widget-messages" id="chat-widget-messages">
-      <div class="chat-msg admin">Welcome! How can we help you?</div>
-    </div>
-    <div class="chat-widget-input">
-      <input type="text" id="chat-widget-input" placeholder="Type a message..." autocomplete="off">
-      <button id="chat-widget-send">Send</button>
-    </div>
-  </div>
 
-  <!-- MOBILE BOTTOM BAR -->
-  <div class="mobile-bottom-bar" id="mobile-bottom-bar">
-    <button class="icon-btn theme-toggle" id="mobile-theme-toggle" title="Toggle theme">&#9790;</button>
-    <button class="icon-btn" id="mobile-register-btn" title="Register / Login">&#9997;</button>
-    <button class="icon-btn" id="mobile-profile-btn" title="My Profile">&#128100;</button>
-    <button class="icon-btn cart-btn" id="mobile-cart-btn" aria-label="Cart">
-      &#128722;
-      <span class="cart-count" id="mobile-cart-count">0</span>
-    </button>
-  </div>
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
+        <a href="#" class="logo"><img src="images/download.png" alt="VOLT" class="logo-img"> VOLT</a>
+          <p>Premium urban fashion for the bold and the fearless.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Shop</h4>
+          <a href="#">T-Shirts</a>
+          <a href="#">Jackets</a>
+          <a href="#">Pants</a>
+          <a href="#">Shoes</a>
+        </div>
+        <div class="footer-links">
+          <h4>Support</h4>
+          <a href="#">Contact Us</a>
+          <a href="#">Returns</a>
+          <a href="#">Size Guide</a>
+          <a href="#">FAQ</a>
+        </div>
+        <div class="footer-links">
+          <h4>Company</h4>
+          <a href="#">About Us</a>
+          <a href="/#admin">Admin Panel</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="container">
+          <p>&copy; 2026 VOLT. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
 
-  <script src="js/main.js?v=2"></script>
+    <!-- CHAT WIDGET -->
+    <button class="chat-toggle" id="chat-toggle">&#128172;</button>
+    <div class="chat-widget" id="chat-widget">
+      <div class="chat-widget-header">
+        <span>VOLT Support</span>
+        <button class="chat-close-btn" id="chat-close-btn">&times;</button>
+      </div>
+      <div class="chat-widget-messages" id="chat-widget-messages">
+        <div class="chat-msg admin">Welcome! How can we help you?</div>
+      </div>
+      <div class="chat-widget-input">
+        <input type="text" id="chat-widget-input" placeholder="Type a message..." autocomplete="off">
+        <button id="chat-widget-send">Send</button>
+      </div>
+    </div>
+
+    <!-- MOBILE BOTTOM BAR -->
+    <div class="mobile-bottom-bar" id="mobile-bottom-bar">
+      <button class="icon-btn theme-toggle" id="mobile-theme-toggle" title="Toggle theme">&#9790;</button>
+      <button class="icon-btn" id="mobile-register-btn" title="Register / Login">&#9997;</button>
+      <button class="icon-btn" id="mobile-profile-btn" title="My Profile">&#128100;</button>
+      <button class="icon-btn cart-btn" id="mobile-cart-btn" aria-label="Cart">
+        &#128722;
+        <span class="cart-count" id="mobile-cart-count">0</span>
+      </button>
+    </div>
+
+  </div><!-- /store-view -->
+
+  <!-- ===================== ADMIN VIEW ===================== -->
+  <div id="admin-view" style="display:none">
+
+    <aside class="admin-sidebar" id="admin-sidebar">
+      <div class="sidebar-inner">
+        <div class="sidebar-header">
+          <a href="/" class="admin-logo">VOLT <span>Admin</span></a>
+          <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">&#9776;</button>
+        </div>
+        <nav class="sidebar-nav">
+          <button class="tab-btn active" data-tab="products">Products</button>
+          <button class="tab-btn" data-tab="orders">Orders</button>
+          <button class="tab-btn" data-tab="offers">Offers</button>
+          <button class="tab-btn" data-tab="notifications" id="notif-tab-btn">Notifications <span class="notif-badge" id="notif-badge"></span></button>
+          <button class="tab-btn" data-tab="chat">Chat</button>
+          <button class="tab-btn" data-tab="statistics">Statistics</button>
+        </nav>
+        <div class="sidebar-footer">
+          <button class="tab-btn theme-toggle" id="admin-theme-toggle">&#9790; Theme</button>
+          <button class="btn btn-outline btn-sm" id="logout-btn">Logout</button>
+        </div>
+      </div>
+    </aside>
+
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">&#9776;</button>
+
+    <main class="admin-main" id="admin-main">
+
+      <!-- === PRODUCTS TAB === -->
+      <section class="tab-content active" id="tab-products">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Products</h2>
+            <button class="btn btn-primary" id="add-product-btn">+ Add Product</button>
+          </div>
+          <div class="product-list" id="product-list">
+            <p class="empty-msg">No products yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- === ORDERS TAB === -->
+      <section class="tab-content" id="tab-orders">
+        <div class="container">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Total Orders</span>
+              <span class="stat-value" id="stat-orders">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Total Revenue</span>
+              <span class="stat-value" id="stat-revenue">0 EGP</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Items Sold</span>
+              <span class="stat-value" id="stat-items">0</span>
+            </div>
+          </div>
+          <div class="section-header">
+            <h2 class="section-title">Orders</h2>
+            <button class="btn btn-outline" id="clear-btn">Clear All</button>
+          </div>
+          <div class="orders-list" id="orders-list">
+            <p class="empty-msg">No orders yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- === OFFERS TAB === -->
+      <section class="tab-content" id="tab-offers">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Offers</h2>
+            <button class="btn btn-primary" id="add-offer-btn">+ Add Offer</button>
+          </div>
+          <div class="offers-list" id="offers-list">
+            <p class="empty-msg">No offers yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- === NOTIFICATIONS TAB === -->
+      <section class="tab-content" id="tab-notifications">
+        <div class="container">
+          <h2 class="section-title">Notifications</h2>
+          <div class="notif-list" id="notif-list">
+            <p class="empty-msg">No notifications.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- === CHAT TAB === -->
+      <section class="tab-content" id="tab-chat">
+        <div class="container">
+          <h2 class="section-title">Customer Chat</h2>
+          <div class="admin-chat-layout">
+            <div class="chat-customer-list" id="chat-customer-list">
+              <p class="empty-msg">No customers yet.</p>
+            </div>
+            <div class="chat-conversation">
+              <div class="chat-conversation-header" id="chat-conv-header">Select a customer to chat</div>
+              <div class="chat-messages" id="admin-chat-messages">
+                <p class="empty-msg">No messages yet.</p>
+              </div>
+              <div class="chat-input-row">
+                <input type="text" id="admin-chat-input" placeholder="Type a reply..." autocomplete="off">
+                <button class="btn btn-primary" id="admin-chat-send">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- === STATISTICS TAB === -->
+      <section class="tab-content" id="tab-statistics">
+        <div class="container">
+          <h2 class="section-title">Analytics</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Online Now</span>
+              <span class="stat-value" id="stat-online">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Total Orders</span>
+              <span class="stat-value" id="stat-total-orders">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Total Revenue</span>
+              <span class="stat-value" id="stat-total-revenue">0 EGP</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Total Customers</span>
+              <span class="stat-value" id="stat-total-customers">0</span>
+            </div>
+          </div>
+
+          <div class="chart-card full-width">
+              <h3 class="chart-title">7-Day Analytics</h3>
+              <canvas id="chart-analytics"></canvas>
+            </div>
+
+          <div class="analytics-table-wrap">
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Today</th>
+                  <th>Yesterday</th>
+                  <th class="trend-col">vs Yesterday</th>
+                  <th>This Week</th>
+                  <th>Last Week</th>
+                  <th class="trend-col">vs Last Week</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Orders</td>
+                  <td id="a-orders-today">0</td>
+                  <td id="a-orders-yesterday">0</td>
+                  <td class="trend-col" id="a-trend-orders-day"></td>
+                  <td id="a-orders-week">0</td>
+                  <td id="a-orders-lastweek">0</td>
+                  <td class="trend-col" id="a-trend-orders-week"></td>
+                </tr>
+                <tr>
+                  <td>Revenue</td>
+                  <td id="a-revenue-today">0 EGP</td>
+                  <td id="a-revenue-yesterday">0 EGP</td>
+                  <td class="trend-col" id="a-trend-revenue-day"></td>
+                  <td id="a-revenue-week">0 EGP</td>
+                  <td id="a-revenue-lastweek">0 EGP</td>
+                  <td class="trend-col" id="a-trend-revenue-week"></td>
+                </tr>
+                <tr>
+                  <td>Items Sold</td>
+                  <td id="a-items-today">0</td>
+                  <td id="a-items-yesterday">0</td>
+                  <td class="trend-col" id="a-trend-items-day"></td>
+                  <td id="a-items-week">0</td>
+                  <td id="a-items-lastweek">0</td>
+                  <td class="trend-col" id="a-trend-items-week"></td>
+                </tr>
+                <tr>
+                  <td>Avg Order Value</td>
+                  <td id="a-avg-today">0 EGP</td>
+                  <td id="a-avg-yesterday">0 EGP</td>
+                  <td class="trend-col" id="a-trend-avg-day"></td>
+                  <td id="a-avg-week">0 EGP</td>
+                  <td id="a-avg-lastweek">0 EGP</td>
+                  <td class="trend-col" id="a-trend-avg-week"></td>
+                </tr>
+                <tr>
+                  <td>New Customers</td>
+                  <td id="a-newcust-today">0</td>
+                  <td id="a-newcust-yesterday">0</td>
+                  <td class="trend-col" id="a-trend-newcust-day"></td>
+                  <td id="a-newcust-week">—</td>
+                  <td id="a-newcust-lastweek">—</td>
+                  <td class="trend-col" id="a-trend-newcust-week"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- OFFER FORM MODAL -->
+    <div class="modal-overlay" id="offer-modal-overlay"></div>
+    <div class="modal" id="offer-modal">
+      <div class="modal-header">
+        <h2 id="offer-modal-title">Add Offer</h2>
+        <button class="modal-close" id="offer-modal-close">&times;</button>
+      </div>
+      <form id="offer-form">
+        <input type="hidden" id="offer-edit-id">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="offer-title" required placeholder="e.g. Buy 4 Get 1 Free">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="offer-desc" required placeholder="e.g. Buy 4 T-Shirts, Get the 5th FREE!">
+        </div>
+        <div class="form-group">
+          <label>Type (category)</label>
+          <input type="text" id="offer-product-type" placeholder="e.g. T-Shirt">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Buy Qty</label>
+            <input type="number" id="offer-buy" value="4" min="1">
+          </div>
+          <div class="form-group">
+            <label>Free Qty</label>
+            <input type="number" id="offer-free" value="1" min="1">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Active</label>
+          <select id="offer-active">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" id="save-offer">Save Offer</button>
+      </form>
+    </div>
+
+    <!-- PRODUCT FORM MODAL -->
+    <div class="modal-overlay" id="product-modal-overlay"></div>
+    <div class="modal" id="product-modal">
+      <div class="modal-header">
+        <h2 id="product-modal-title">Add Product</h2>
+        <button class="modal-close" id="product-modal-close">&times;</button>
+      </div>
+      <form id="product-form">
+        <input type="hidden" id="edit-id">
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" id="p-name" required placeholder="e.g. Wide Leg Pants">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Sale Price (EGP)</label>
+            <input type="number" id="p-price" required placeholder="350">
+          </div>
+          <div class="form-group">
+            <label>Original Price (EGP)</label>
+            <input type="number" id="p-original" placeholder="400">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Type (category)</label>
+          <input type="text" id="p-type" required placeholder="e.g. T-Shirt, Pants, Shorts">
+        </div>
+        <div class="form-group">
+          <label>Material</label>
+          <input type="text" id="p-material" required placeholder="Premium Soft Summer Milton">
+        </div>
+        <div class="form-group">
+          <label>Colors</label>
+          <input type="text" id="p-colors" required placeholder="classic Solid">
+        </div>
+        <div class="form-group">
+          <label>Sizes (comma separated)</label>
+          <input type="text" id="p-sizes" required placeholder="M, L, XL, 2XL">
+        </div>
+        <div class="form-group">
+          <label>Image URLs (one per line)</label>
+          <textarea id="p-images" rows="3" required placeholder="images/img1.jpeg"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Availability</label>
+            <select id="p-available">
+              <option value="true">Available</option>
+              <option value="false">Unavailable</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="save-product">Save Product</button>
+      </form>
+    </div>
+
+    <!-- Sidebar overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  </div><!-- /admin-view -->
+
+  <script src="js/main.js?v=3"></script>
+  <script src="js/admin.js?v=5"></script>
+  <script>
+    (function() {
+      var storeView = document.getElementById('store-view');
+      var adminView = document.getElementById('admin-view');
+      var adminInitialized = false;
+
+      function handleRoute() {
+        var isAdmin = location.hash === '#admin';
+        if (isAdmin) {
+          if (sessionStorage.getItem('volt_admin') !== 'true') {
+            location.href = 'login.html';
+            return;
+          }
+          storeView.style.display = 'none';
+          adminView.style.display = '';
+          document.body.classList.add('admin-mode');
+          if (!adminInitialized) {
+            adminInitialized = true;
+            if (typeof window.adminInitApp === 'function') window.adminInitApp();
+          }
+        } else {
+          storeView.style.display = '';
+          adminView.style.display = 'none';
+          document.body.classList.remove('admin-mode');
+        }
+      }
+
+      window.addEventListener('hashchange', handleRoute);
+      handleRoute();
+    })();
+  </script>
 </body>
 </html>

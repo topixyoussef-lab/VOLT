@@ -1,10 +1,12 @@
 const savedTheme = localStorage.getItem('volt_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
+document.getElementById('admin-view')?.setAttribute('data-theme', savedTheme);
 
 document.getElementById('admin-theme-toggle')?.addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('admin-view')?.setAttribute('data-theme', next);
   localStorage.setItem('volt_theme', next);
   if (chartAnalytics) { chartAnalytics.destroy(); }
   initCharts();
@@ -133,13 +135,9 @@ adminSidebar?.addEventListener('touchend', () => {
   }
 }, { passive: true });
 
-if (sessionStorage.getItem('volt_admin') !== 'true') {
-  window.location.href = 'login.html';
-}
-
 document.getElementById('logout-btn')?.addEventListener('click', () => {
   sessionStorage.removeItem('volt_admin');
-  window.location.href = 'login.html';
+  window.location.href = '/';
 });
 
 // Tabs
@@ -160,6 +158,11 @@ tabs.forEach(btn => {
 });
 
 const API = '/api/admin';
+
+function syncStore() {
+  if (typeof window.loadProducts === 'function') window.loadProducts();
+  if (typeof window.loadOffers === 'function') window.loadOffers();
+}
 
 async function apiGet(path) { const r = await fetch(API + path); return r.json(); }
 async function apiPost(path, body) {
@@ -337,6 +340,7 @@ async function toggleAvailable(id) {
   const newAvail = p.available === false;
   await apiPut('/products/' + id, { available: newAvail });
   renderProducts();
+  syncStore();
 }
 
 async function editProduct(id) {
@@ -363,6 +367,7 @@ async function deleteProduct(id) {
   if (!confirm('Delete this product?')) return;
   await apiDelete('/products/' + id);
   renderProducts();
+  syncStore();
 }
 
 document.getElementById('product-form')?.addEventListener('submit', async (e) => {
@@ -384,6 +389,7 @@ document.getElementById('product-form')?.addEventListener('submit', async (e) =>
   }
   else await apiPost('/products', payload);
   renderProducts();
+  syncStore();
   document.getElementById('product-modal-overlay').classList.remove('open');
   document.getElementById('product-modal').classList.remove('open');
 });
@@ -474,12 +480,14 @@ async function toggleOffer(id) {
   if (!o) return;
   await apiPut('/offers/' + id, { active: !o.active });
   renderOffers();
+  syncStore();
 }
 
 async function deleteOffer(id) {
   if (!confirm('Delete this offer?')) return;
   await apiDelete('/offers/' + id);
   renderOffers();
+  syncStore();
 }
 
 async function editOffer(id) {
@@ -521,6 +529,7 @@ document.getElementById('offer-form')?.addEventListener('submit', async (e) => {
   if (editId) await apiPut('/offers/' + editId, payload);
   else await apiPost('/offers', payload);
   renderOffers();
+  syncStore();
   document.getElementById('offer-modal-overlay').classList.remove('open');
   document.getElementById('offer-modal').classList.remove('open');
 });
@@ -637,6 +646,4 @@ async function sendMessage() {
 document.getElementById('admin-chat-send')?.addEventListener('click', sendMessage);
 document.getElementById('admin-chat-input')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-if (sessionStorage.getItem('volt_admin') === 'true') {
-  initApp();
-}
+window.adminInitApp = initApp;

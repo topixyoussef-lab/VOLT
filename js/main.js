@@ -117,11 +117,13 @@ document.addEventListener('mouseover', (e) => {
 // ====== THEME TOGGLE ======
 const savedTheme = localStorage.getItem('volt_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
+document.getElementById('admin-view')?.setAttribute('data-theme', savedTheme);
 
 document.getElementById('theme-toggle')?.addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('admin-view')?.setAttribute('data-theme', next);
   localStorage.setItem('volt_theme', next);
 });
 document.getElementById('mobile-theme-toggle')?.addEventListener('click', () => {

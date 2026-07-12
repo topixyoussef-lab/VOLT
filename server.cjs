@@ -155,7 +155,7 @@ async function handleRequest(req, res) {
     return serveFile(res, path.join(ROOT, 'login.html'));
 
   if (p === '/admin' || p === '/admin.html')
-    return serveFile(res, path.join(ROOT, 'admin.html'));
+    return serveFile(res, path.join(ROOT, 'index.html'));
 
   if (p === '/api/admin/products' && req.method === 'GET')
     return sendJSON(res, 200, (await readData()).products);
