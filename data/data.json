@@ -3,6 +3,7 @@
     {
       "id": 1,
       "name": "Wide Leg Pants",
+      "type": "Pants",
       "price": 350,
       "originalPrice": 400,
       "material": "Premium Soft Summer Milton",
@@ -23,6 +24,7 @@
     {
       "id": 2,
       "name": "T-Shirts",
+      "type": "T-Shirts",
       "price": 250,
       "originalPrice": 300,
       "material": "Marseilia High-Quality Lycra",
@@ -43,6 +45,7 @@
     {
       "id": 3,
       "name": "T-Shirts",
+      "type": "T-Shirts",
       "price": 250,
       "originalPrice": 300,
       "material": "Marseilia High-Quality Lycra",
@@ -63,6 +66,7 @@
     {
       "id": 4,
       "name": "T-Shirts",
+      "type": "T-Shirts",
       "price": 250,
       "originalPrice": 300,
       "material": "Marseilia High-Quality Lycra",
@@ -83,6 +87,7 @@
     {
       "id": 5,
       "name": "T-Shirts",
+      "type": "T-Shirts",
       "price": 250,
       "originalPrice": 300,
       "material": "Marseilia High-Quality Lycra",
@@ -103,6 +108,7 @@
     {
       "id": 6,
       "name": "Wide Leg Pants",
+      "type": "Pants",
       "price": 350,
       "originalPrice": 400,
       "material": "Premium Soft Summer Milton",
@@ -123,6 +129,7 @@
     {
       "id": 7,
       "name": "Men's Summer Shorts Tracksuit",
+      "type": "Shorts",
       "price": 350,
       "originalPrice": 400,
       "material": "Summer Molton, Brushed Back",
@@ -143,6 +150,7 @@
     {
       "id": 8,
       "name": "Men's Summer Shorts Tracksuit",
+      "type": "Shorts",
       "price": 350,
       "originalPrice": 400,
       "material": "Summer Molton, Brushed Back",
@@ -163,6 +171,7 @@
     {
       "id": 9,
       "name": "Men's Summer Shorts Tracksuit",
+      "type": "Shorts",
       "price": 350,
       "originalPrice": 400,
       "material": "Summer Molton, Brushed Back",
@@ -224,7 +233,7 @@
     {
       "title": "Buy 4 Get 1 Free",
       "desc": "Buy 4 T-Shirts, Get the 5th FREE!",
-      "product": "T-Shirts",
+      "productType": "T-Shirts",
       "buy": 4,
       "free": 1,
       "active": false,

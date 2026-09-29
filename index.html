@@ -553,9 +553,22 @@
           <input type="text" id="p-sizes" required placeholder="M, L, XL, 2XL">
         </div>
         <div class="form-group">
-          <label>Image URLs (one per line)</label>
-          <textarea id="p-images" rows="3" required placeholder="images/img1.jpeg"></textarea>
+          <label>Product Images</label>
+          <input type="file" id="p-image-files" accept="image/*" multiple hidden>
+          <div class="img-drop" id="img-drop">
+            <span class="img-drop-icon">&#43;</span>
+            <p><strong>Choose images from your device</strong></p>
+            <p class="img-drop-hint">or drag &amp; drop them here &middot; JPG, PNG, WebP &middot; up to 8</p>
+          </div>
+          <p class="img-status" id="img-status" style="display:none;"></p>
+          <div class="img-previews" id="img-previews"></div>
         </div>
+        <details class="img-url-fallback">
+          <summary>Or paste image paths / URLs</summary>
+          <div class="form-group">
+            <textarea id="p-images" rows="3" placeholder="images/img1.jpeg"></textarea>
+          </div>
+        </details>
         <div class="form-row">
           <div class="form-group">
             <label>Availability</label>
@@ -575,7 +588,7 @@
   </div><!-- /admin-view -->
 
   <script src="js/main.js?v=3"></script>
-  <script src="js/admin.js?v=5"></script>
+  <script src="js/admin.js?v=6"></script>
   <script>
     (function() {
       var storeView = document.getElementById('store-view');

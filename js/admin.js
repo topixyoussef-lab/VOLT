@@ -48,13 +48,6 @@ function playSelectSound() {
 
 // playClickSound is defined in main.js (loaded first)
 
-document.addEventListener('click', (e) => {
-  const t = e.target;
-  if (t.tagName === 'BUTTON' || t.tagName === 'A' || t.closest('button') || t.closest('a') || t.closest('[onclick]') || t.classList.contains('tab-btn') || t.classList.contains('btn')) {
-    playClickSound();
-  }
-});
-
 const toggleSidebar = () => {
   document.getElementById('admin-sidebar')?.classList.toggle('open');
   document.getElementById('sidebar-overlay')?.classList.toggle('open');
@@ -271,15 +264,16 @@ async function loadDailyStats() {
 }
 
 function initApp() {
-  initCharts();
-  loadOnlineCount();
-  loadDailyStats();
-  loadCharts();
-  renderProducts();
-  renderOrders();
-  renderOffers();
-  loadNotifications();
-  loadCustomerList();
+  const safe = (fn) => { try { fn(); } catch (e) { console.warn('Admin init error:', e); } };
+  safe(initCharts);
+  safe(loadOnlineCount);
+  safe(loadDailyStats);
+  safe(loadCharts);
+  safe(renderProducts);
+  safe(renderOrders);
+  safe(renderOffers);
+  safe(loadNotifications);
+  safe(loadCustomerList);
 }
 
 setInterval(loadOnlineCount, 10000);
@@ -288,9 +282,10 @@ setInterval(loadCharts, 60000);
 
 // ====== PRODUCTS ======
 async function renderProducts() {
-  const products = await apiGet('/products');
-  const list = document.getElementById('product-list');
-  if (products.length === 0) { list.innerHTML = '<p class="empty-msg">No products yet.</p>'; return; }
+  try {
+    const products = await apiGet('/products');
+    const list = document.getElementById('product-list');
+    if (!Array.isArray(products) || products.length === 0) { list.innerHTML = '<p class="empty-msg">No products yet.</p>'; return; }
   list.innerHTML = products.map(p => `
     <div class="admin-product-card${p.available === false ? ' unavailable' : ''}">
       <div class="admin-product-img" style="background-image: url('${p.images[0] || ''}');"></div>
@@ -305,25 +300,154 @@ async function renderProducts() {
         <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">Delete</button>
       </div>
     </div>
-  `).join('');
+      `).join('');
+  } catch (e) { console.warn('renderProducts error:', e); }
+}
+
+// ====== IMAGE UPLOADER ======
+// pendingImages holds { src, isNew }. isNew === true means src is still a local
+// data URL that has to be pushed to /api/admin/upload on save.
+let pendingImages = [];
+const MAX_IMAGES = 8;
+const MAX_DIM = 1400;
+const JPEG_QUALITY = 0.82;
+const MAX_SOURCE_BYTES = 12 * 1024 * 1024;
+
+const fileInput = document.getElementById('p-image-files');
+const dropZone = document.getElementById('img-drop');
+const previewsEl = document.getElementById('img-previews');
+const imgStatus = document.getElementById('img-status');
+
+function setImgStatus(text, isError) {
+  if (!imgStatus) return;
+  imgStatus.textContent = text || '';
+  imgStatus.classList.toggle('err', !!isError);
+  imgStatus.style.display = text ? '' : 'none';
+}
+
+function renderImagePreviews() {
+  if (!previewsEl) return;
+  previewsEl.innerHTML = pendingImages.map((img, i) => `
+    <div class="img-preview${i === 0 ? ' first' : ''}">
+      <img src="${img.src}" alt="">
+      <button type="button" class="img-preview-remove" data-rm="${i}" title="Remove">&times;</button>
+      <button type="button" class="img-preview-move" data-mv="${i}" title="Make main image"${i === 0 ? ' disabled' : ''}>&#9733;</button>
+    </div>`).join('');
+  previewsEl.querySelectorAll('[data-rm]').forEach(b =>
+    b.addEventListener('click', () => { pendingImages.splice(+b.dataset.rm, 1); renderImagePreviews(); }));
+  previewsEl.querySelectorAll('[data-mv]').forEach(b =>
+    b.addEventListener('click', () => {
+      const i = +b.dataset.mv;
+      if (i === 0) return;
+      [pendingImages[0], pendingImages[i]] = [pendingImages[i], pendingImages[0]];
+      renderImagePreviews();
+    }));
+}
+
+function resetImageUploader() {
+  pendingImages = [];
+  if (fileInput) fileInput.value = '';
+  setImgStatus('');
+  renderImagePreviews();
+}
+
+// Downscale + re-encode in the browser so the request stays small and the
+// stored copy is a predictable JPEG regardless of the source format.
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    if (!/^image\//.test(file.type)) return reject(new Error('"' + file.name + '" is not an image'));
+    if (file.size > MAX_SOURCE_BYTES) return reject(new Error('"' + file.name + '" is larger than 12MB'));
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read "' + file.name + '"'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('"' + file.name + '" is not a valid image'));
+      img.onload = () => {
+        const scale = Math.min(1, MAX_DIM / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addImageFiles(fileList) {
+  const files = Array.from(fileList || []).filter(f => /^image\//.test(f.type));
+  if (!files.length) { setImgStatus('Those files are not images.', true); return; }
+  const room = MAX_IMAGES - pendingImages.length;
+  if (room <= 0) { setImgStatus('Maximum ' + MAX_IMAGES + ' images per product.', true); return; }
+  const accepted = files.slice(0, room);
+  const errors = [];
+  if (files.length > room) errors.push('Only ' + room + ' more image(s) fit.');
+  setImgStatus('Processing ' + accepted.length + ' image(s)...');
+  for (const file of accepted) {
+    try {
+      pendingImages.push({ src: await compressImageFile(file), isNew: true });
+    } catch (e) { errors.push(e.message); }
+  }
+  renderImagePreviews();
+  setImgStatus(errors.length ? errors.join(' ') : '', errors.length > 0);
+}
+
+fileInput?.addEventListener('change', () => { addImageFiles(fileInput.files); fileInput.value = ''; });
+
+dropZone?.addEventListener('click', () => fileInput?.click());
+['dragenter', 'dragover'].forEach(ev => dropZone?.addEventListener(ev, e => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+}));
+['dragleave', 'drop'].forEach(ev => dropZone?.addEventListener(ev, e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+}));
+dropZone?.addEventListener('drop', e => addImageFiles(e.dataTransfer?.files));
+
+// Push the not-yet-uploaded data URLs and return the final ordered image list.
+async function resolveImageList(urlField) {
+  const manual = (urlField?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
+  const toUpload = pendingImages.filter(i => i.isNew);
+  if (toUpload.length) {
+    setImgStatus('Uploading ' + toUpload.length + ' image(s)...');
+    const res = await apiPost('/upload', { images: toUpload.map(i => i.src) });
+    if (!res || res.error || !Array.isArray(res.urls)) {
+      throw new Error((res && res.error) || 'Upload failed');
+    }
+    let u = 0;
+    pendingImages = pendingImages.map(img => img.isNew ? { src: res.urls[u++], isNew: false } : img);
+    renderImagePreviews();
+  }
+  setImgStatus('');
+  return [...pendingImages.map(i => i.src), ...manual];
 }
 
 document.getElementById('add-product-btn')?.addEventListener('click', () => {
   document.getElementById('product-modal-title').textContent = 'Add Product';
   document.getElementById('edit-id').value = '';
   document.getElementById('product-form').reset();
+  resetImageUploader();
   document.getElementById('product-modal-overlay').classList.add('open');
   document.getElementById('product-modal').classList.add('open');
 });
 
 async function toggleAvailable(id) {
-  const products = await apiGet('/products');
-  const p = products.find(x => x.id === id);
-  if (!p) return;
-  const newAvail = p.available === false;
-  await apiPut('/products/' + id, { available: newAvail });
-  renderProducts();
-  syncStore();
+  try {
+    const products = await apiGet('/products');
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    const newAvail = p.available === false;
+    await apiPut('/products/' + id, { available: newAvail });
+    renderProducts();
+    syncStore();
+  } catch (e) { alert('Failed to toggle availability.'); }
 }
 
 async function editProduct(id) {
@@ -339,8 +463,12 @@ async function editProduct(id) {
   if (typeEl) typeEl.value = p.type || '';
   document.getElementById('p-material').value = p.material || '';
   document.getElementById('p-colors').value = p.colors || '';
-  document.getElementById('p-sizes').value = p.sizes.join(', ');
-  document.getElementById('p-images').value = p.images.join('\n');
+  document.getElementById('p-sizes').value = (p.sizes || []).join(', ');
+  const imagesField = document.getElementById('p-images');
+  if (imagesField) imagesField.value = '';
+  pendingImages = (p.images || []).map(src => ({ src, isNew: false }));
+  renderImagePreviews();
+  setImgStatus('');
   document.getElementById('p-available').value = p.available === false ? 'false' : 'true';
   document.getElementById('product-modal-overlay').classList.add('open');
   document.getElementById('product-modal').classList.add('open');
@@ -348,9 +476,11 @@ async function editProduct(id) {
 
 async function deleteProduct(id) {
   if (!confirm('Delete this product?')) return;
-  await apiDelete('/products/' + id);
-  renderProducts();
-  syncStore();
+  try {
+    await apiDelete('/products/' + id);
+    renderProducts();
+    syncStore();
+  } catch (e) { alert('Failed to delete product.'); }
 }
 
 document.getElementById('product-form')?.addEventListener('submit', async (e) => {
@@ -363,13 +493,24 @@ document.getElementById('product-form')?.addEventListener('submit', async (e) =>
   const material = document.getElementById('p-material').value.trim();
   const colors = document.getElementById('p-colors').value.trim();
   const sizes = document.getElementById('p-sizes').value.split(',').map(s => s.trim()).filter(Boolean);
-  const images = document.getElementById('p-images').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const urlField = document.getElementById('p-images');
   const available = document.getElementById('p-available').value === 'true';
-  if (!name || !type || !price || !material || !colors || !sizes.length || !images.length) {
+  const hasManual = (urlField?.value || '').split('\n').some(s => s.trim());
+  if (!name || !type || !price || !material || !colors || !sizes.length) {
     alert('Please fill all required fields.');
     return;
   }
+  if (!pendingImages.length && !hasManual) {
+    setImgStatus('Add at least one product image.', true);
+    alert('Please add at least one product image.');
+    return;
+  }
+  const saveBtn = document.getElementById('save-product');
+  const originalLabel = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
   try {
+    const images = await resolveImageList(urlField);
     const payload = { name, type, price, originalPrice, material, colors, sizes, images, available };
     let res;
     if (editId) res = await apiPut('/products/' + editId, payload);
@@ -380,7 +521,11 @@ document.getElementById('product-form')?.addEventListener('submit', async (e) =>
     document.getElementById('product-modal-overlay').classList.remove('open');
     document.getElementById('product-modal').classList.remove('open');
   } catch (err) {
+    setImgStatus(err.message, true);
     alert('Failed to save product. ' + err.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalLabel;
   }
 });
 
@@ -445,9 +590,10 @@ document.getElementById('clear-btn')?.addEventListener('click', async () => {
 
 // ====== OFFERS ======
 async function renderOffers() {
-  const offers = await apiGet('/offers');
-  const list = document.getElementById('offers-list');
-  if (offers.length === 0) { list.innerHTML = '<p class="empty-msg">No offers yet.</p>'; return; }
+  try {
+    const offers = await apiGet('/offers');
+    const list = document.getElementById('offers-list');
+    if (!Array.isArray(offers) || offers.length === 0) { list.innerHTML = '<p class="empty-msg">No offers yet.</p>'; return; }
   list.innerHTML = offers.map(o => `
     <div class="offer-card">
       <div class="offer-info">
@@ -461,23 +607,28 @@ async function renderOffers() {
         <button class="btn btn-danger btn-sm" onclick="deleteOffer(${o.id})">Delete</button>
       </div>
     </div>
-  `).join('');
+      `).join('');
+  } catch (e) { console.warn('renderOffers error:', e); }
 }
 
 async function toggleOffer(id) {
-  const offers = await apiGet('/offers');
-  const o = offers.find(x => x.id === id);
-  if (!o) return;
-  await apiPut('/offers/' + id, { active: !o.active });
-  renderOffers();
-  syncStore();
+  try {
+    const offers = await apiGet('/offers');
+    const o = offers.find(x => x.id === id);
+    if (!o) return;
+    await apiPut('/offers/' + id, { active: !o.active });
+    renderOffers();
+    syncStore();
+  } catch (e) { alert('Failed to toggle offer.'); }
 }
 
 async function deleteOffer(id) {
   if (!confirm('Delete this offer?')) return;
-  await apiDelete('/offers/' + id);
-  renderOffers();
-  syncStore();
+  try {
+    await apiDelete('/offers/' + id);
+    renderOffers();
+    syncStore();
+  } catch (e) { alert('Failed to delete offer.'); }
 }
 
 async function editOffer(id) {

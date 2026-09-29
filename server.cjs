@@ -2,6 +2,7 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
@@ -18,40 +19,31 @@ const REDIS_KEY = 'volt_data';
 const activeMap = new Map();
 const ACTIVE_TTL = 70000; // 70 seconds (longer than 30s heartbeat interval)
 
-function redisGet(key) {
-  return new Promise((resolve) => {
-    if (!USE_REDIS) { resolve(null); return; }
-    const url = new URL('/get/' + key, UPSTASH_URL);
-    const opts = {
-      hostname: url.hostname, path: url.pathname, method: 'GET',
+async function redisGet(key) {
+  if (!USE_REDIS) return null;
+  try {
+    const r = await fetch(UPSTASH_URL + '/get/' + key, {
       headers: { 'Authorization': 'Bearer ' + UPSTASH_TOKEN }
-    };
-    const req = https.request(opts, res => {
-      let body = '';
-      res.on('data', c => body += c);
-      res.on('end', () => { try { resolve(JSON.parse(body).result); } catch { resolve(null); } });
     });
-    req.on('error', () => resolve(null));
-    req.end();
-  });
+    const d = await r.json();
+    return d.result || null;
+  } catch { return null; }
 }
 
-function redisSet(key, value) {
-  return new Promise((resolve) => {
-    if (!USE_REDIS) { resolve(false); return; }
-    const url = new URL('/set/' + key + '/' + encodeURIComponent(value), UPSTASH_URL);
-    const opts = {
-      hostname: url.hostname, path: url.pathname + url.search, method: 'GET',
-      headers: { 'Authorization': 'Bearer ' + UPSTASH_TOKEN }
-    };
-    const req = https.request(opts, res => {
-      let body = '';
-      res.on('data', c => body += c);
-      res.on('end', () => resolve(body.trim() === 'OK'));
+async function redisSet(key, value) {
+  if (!USE_REDIS) return false;
+  try {
+    const r = await fetch(UPSTASH_URL + '/set/' + key, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + UPSTASH_TOKEN,
+        'Content-Type': 'text/plain'
+      },
+      body: value
     });
-    req.on('error', () => resolve(false));
-    req.end();
-  });
+    const d = await r.json();
+    return d.result === 'OK';
+  } catch (e) { console.error('redisSet error:', e.message); return false; }
 }
 
 // Detect writable data path once at startup
@@ -88,39 +80,94 @@ const MIME = {
   '.svg':  'image/svg+xml',
 };
 
+let _redisFailed = false;
+
+// ---- IMAGE UPLOAD CONFIG ----
+// Images are stored in Redis under content-addressed keys so identical uploads
+// dedupe and can be served with an immutable cache header.
+const IMG_PREFIX = 'volt_img_';
+const MAX_IMAGES_PER_UPLOAD = 8;
+const MAX_UPLOAD_BODY_BYTES = 6 * 1024 * 1024;
+const ALLOWED_IMAGE_MIME = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']);
+
+function parseDataUrl(dataUrl) {
+  const m = /^data:([a-z0-9.+-]+\/[a-z0-9.+-]+);base64,([\s\S]+)$/i.exec(dataUrl || '');
+  if (!m) return null;
+  const mime = m[1].toLowerCase();
+  if (!ALLOWED_IMAGE_MIME.has(mime)) return null;
+  const buf = Buffer.from(m[2], 'base64');
+  if (!buf.length) return null;
+  return { mime, buf };
+}
+
+// Store a data URL in Redis, returning the public path used in product.images
+async function storeImage(dataUrl) {
+  const img = parseDataUrl(dataUrl);
+  if (!img) return { error: 'Only JPEG, PNG, WebP or GIF images are supported' };
+  if (img.buf.length > 4 * 1024 * 1024) return { error: 'Image is too large (max 4MB after compression)' };
+  const key = IMG_PREFIX + crypto.createHash('sha1').update(img.buf).digest('hex');
+  const existing = await redisGet(key);
+  if (!existing) {
+    const ok = await redisSet(key, JSON.stringify({ mime: img.mime, b64: img.buf.toString('base64') }));
+    if (!ok) return { error: 'Image storage is unavailable. Check the Upstash Redis configuration.' };
+  }
+  return { url: '/api/image/' + key };
+}
+
 async function readData() {
-  // Redis: shared across all Vercel instances
-  if (USE_REDIS) {
+  if (USE_REDIS && !_redisFailed) {
     const raw = await redisGet(REDIS_KEY);
     if (raw) { return JSON.parse(raw); }
-    // Seed Redis from file on first use
+    // Redis returned nothing — try seeding, then mark failed if it doesn't work
     const seed = (() => { try { return JSON.parse(fs.readFileSync(DATA_FILE_SRC, 'utf-8')); } catch { return null; } })();
-    if (seed) { await redisSet(REDIS_KEY, JSON.stringify(seed, null, 2)); return seed; }
-    const empty = { products: [], orders: [], customers: [], messages: [], offers: [], notifications: [] };
-    await redisSet(REDIS_KEY, JSON.stringify(empty));
-    return empty;
+    if (seed) {
+      const ok = await redisSet(REDIS_KEY, JSON.stringify(seed, null, 2));
+      if (ok) return seed;
+    }
+    _redisFailed = true;
   }
-  // File-based fallback (local / Render)
   try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')); } catch {}
   try { return JSON.parse(fs.readFileSync(DATA_FILE_SRC, 'utf-8')); } catch {}
   return { products: [], orders: [], customers: [], messages: [], offers: [], notifications: [] };
 }
 async function writeData(d) {
   const str = JSON.stringify(d, null, 2);
-  if (USE_REDIS) { await redisSet(REDIS_KEY, str); }
-  try { fs.writeFileSync(DATA_FILE, str, 'utf-8'); } catch {}
+  let ok = false;
+  if (USE_REDIS && !_redisFailed) { ok = await redisSet(REDIS_KEY, str); }
+  try { fs.writeFileSync(DATA_FILE, str, 'utf-8'); ok = true; } catch {}
+  return ok;
 }
 
-function parseBody(req) {
+function parseBody(req, maxBytes) {
   return new Promise((resolve) => {
     let body = '';
-    req.on('data', c => body += c);
-    req.on('end', () => { try { resolve(JSON.parse(body)); } catch { resolve(null); } });
+    let size = 0;
+    let done = false;
+    const settle = (v) => { if (!done) { done = true; resolve(v); } };
+    req.on('data', c => {
+      if (done) return;
+      size += c.length;
+      if (maxBytes && size > maxBytes) { settle(null); req.destroy(); return; }
+      body += c;
+    });
+    req.on('end', () => {
+      if (done) return;
+      try { settle(JSON.parse(body)); } catch { settle(null); }
+    });
+    req.on('error', () => settle(null));
   });
 }
 
 function sendJSON(res, status, data) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0' });
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  });
   res.end(JSON.stringify(data));
 }
 
@@ -149,6 +196,16 @@ function serveStatic(req, res) {
 async function handleRequest(req, res) {
   const u = new URL(req.url, `http://${req.headers.host}`);
   const p = u.pathname;
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400'
+    });
+    return res.end();
+  }
 
   // ---- ADMIN ROUTES ----
   if (p === '/login' || p === '/login.html')
@@ -278,6 +335,43 @@ async function handleRequest(req, res) {
     });
     await writeData(data);
     return sendJSON(res, 200, { success: true });
+  }
+
+  // ---- IMAGE UPLOAD / SERVING ----
+
+  if (p === '/api/admin/upload' && req.method === 'POST') {
+    const body = await parseBody(req, MAX_UPLOAD_BODY_BYTES);
+    if (!body) return sendJSON(res, 400, { error: 'Invalid JSON or upload too large' });
+    const incoming = Array.isArray(body.images) ? body.images : [];
+    if (!incoming.length) return sendJSON(res, 400, { error: 'No images provided' });
+    if (incoming.length > MAX_IMAGES_PER_UPLOAD)
+      return sendJSON(res, 400, { error: `Maximum ${MAX_IMAGES_PER_UPLOAD} images per upload` });
+    const urls = [];
+    for (const dataUrl of incoming) {
+      const stored = await storeImage(dataUrl);
+      if (stored.error) return sendJSON(res, 400, { error: stored.error });
+      urls.push(stored.url);
+    }
+    return sendJSON(res, 200, { success: true, urls });
+  }
+
+  const imgGet = p.match(/^\/api\/image\/(volt_img_[a-f0-9]{40})$/);
+  if (imgGet && req.method === 'GET') {
+    const raw = await redisGet(imgGet[1]);
+    let rec = null;
+    if (raw) { try { rec = JSON.parse(raw); } catch {} }
+    if (!rec || !rec.b64 || !ALLOWED_IMAGE_MIME.has((rec.mime || '').toLowerCase())) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      return res.end('Not found');
+    }
+    const buf = Buffer.from(rec.b64, 'base64');
+    res.writeHead(200, {
+      'Content-Type': rec.mime,
+      'Content-Length': buf.length,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Access-Control-Allow-Origin': '*'
+    });
+    return res.end(buf);
   }
 
   // ---- ACTIVE / ONLINE TRACKING ----
@@ -534,10 +628,7 @@ async function handleRequest(req, res) {
 
   // Debug endpoint
   if (p === '/api/debug') {
-    const apkPath = path.join(ROOT, 'downloads', 'VOLT.apk');
-    let exists = false, size = 0;
-    try { const s = fs.statSync(apkPath); exists = true; size = s.size; } catch {}
-    return sendJSON(res, 200, { root: ROOT, apkPath, exists, size, url: req.url, vercel: !!process.env.VERCEL });
+    return sendJSON(res, 200, { vercel: !!process.env.VERCEL, USE_REDIS, redisFailed: _redisFailed });
   }
 
   // Serve APK download
